@@ -2,6 +2,8 @@
 
 All decisions below remain pending; the scaffold makes no clinic approval claim.
 
+Member B's [DEC01–02 clinic review record](clinic-rules-review.md) lists the questions and evidence needed to close the first two decisions. It contains no clinic approval yet.
+
 | ID | Owner / gate | Resolution required |
 | --- | --- | --- |
 | DEC01 | Team, clinic, supervisor / week 1 | Clinic identity, organization letter, supervisor details, review dates |
