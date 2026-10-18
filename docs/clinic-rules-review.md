@@ -6,9 +6,10 @@ This is the review record for `TASK-SET-02` (Member B; clinic reviewer). It turn
 
 | Item | Value to record |
 | --- | --- |
+| Project and institution | AyurFlow — Group 04, IS5109 Community Project; Sabaragamuwa University of Sri Lanka, Faculty of Computing, Department of Computing and Information Systems (SRS v1.0 document control) |
 | Clinic reviewer name and role | Pending |
 | Team Member B name | Pending |
-| Team lead / supervisor names and roles | Pending |
+| Team lead / supervisor names and roles | Team lead pending. SRS v1.0 names Mrs K. T. Dananjali as supervisor, with spelling and designation still to be confirmed. |
 | Review date and SRS version | Pending; SRS v1.0 is the current review baseline |
 | Evidence location (signed notes, letter, or meeting record) | Pending; store approved evidence in the team's agreed location |
 | Outcome | Pending — approved, approved with conditions, or returned for revision |
@@ -22,7 +23,7 @@ Do not put real patient records, passwords, or private contact details in this r
 | What is the clinic's approved name and the organisation named in the proposal and pilot materials? | Pending |
 | Who may speak for the clinic in clinical workflow review and pilot acceptance? Record role and approval authority. | Pending |
 | Is the organisation letter available, and where is the approved copy kept? | Pending |
-| Who is the academic supervisor, and what review or approval is required from them? | Pending |
+| Confirm the academic supervisor's spelling, designation, and required review or approval. | SRS v1.0 provisionally names Mrs K. T. Dananjali; confirmation pending. |
 | What are the kickoff, requirements review, clinic demonstration, and acceptance review dates? | Pending |
 
 DEC01 is complete only when the team, clinic, and supervisor agree these details and the review evidence is recorded. This does not itself authorise real patient data use; that is DEC05.
