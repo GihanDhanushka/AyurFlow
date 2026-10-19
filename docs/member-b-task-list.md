@@ -1,41 +1,41 @@
 # Member B task list
 
-Member B owns patient records, consultations, care plans, and clinician decisions. Member C reviews B's work and owns scheduling; Member B reviews C's scheduling work. This checklist follows the SRS v1.0 and team task plan dated 1 October 2026. All items are pending in the current scaffold. Weeks are relative to the team's implementation kickoff.
+Member B owns patient records, consultations, care plans, and clinician decisions. Member C reviews B's work and owns scheduling; Member B reviews C's scheduling work. This checklist follows the SRS v1.0 and team task plan dated 1 October 2026. `TASK-SET-02` has a provisional development contract; its clinic decisions remain pending, and all B-owned feature implementation remains pending. Weeks are relative to the team's implementation kickoff.
 
 ## Branches
 
-Each listed task has a local branch created from `dev`. Lead-task branches are for B's feature work. Branches ending in `-member-b` are for B's contribution or review on a task led by another member; coordinate integration with that task's owner. The four completion-rule checkboxes below apply to every feature and are not separate tasks. This checklist itself is on `codex/member-b-task-list`.
+Use `member-b/<description-of-work>` for each Member B task branch, with lowercase words separated by hyphens. Create a new branch from the latest integrated `dev` when that task starts; the names below are planned names, not claims that branches already exist. The existing `member-b/confirm-clinic-rules` branch is in use for `TASK-SET-02`. For a task led by another member, B's contribution or review has its own clearly named branch and is integrated with that task owner. The four completion-rule checkboxes below apply to every feature and are not separate tasks.
 
 | Task | Branch |
 | --- | --- |
-| TASK-SET-02 | `codex/task-set-02` |
-| TASK-SET-06 (B contribution) | `codex/task-set-06-member-b` |
-| TASK-UI-02 (B contribution) | `codex/task-ui-02-member-b` |
-| TASK-PAT-01 | `codex/task-pat-01` |
-| TASK-PAT-02 | `codex/task-pat-02` |
-| TASK-PAT-03 | `codex/task-pat-03` |
-| TASK-CON-01 | `codex/task-con-01` |
-| TASK-CON-02 | `codex/task-con-02` |
-| TASK-CON-03 | `codex/task-con-03` |
-| TASK-CON-04 | `codex/task-con-04` |
-| TASK-CLN-01 | `codex/task-cln-01` |
-| TASK-CLN-02 | `codex/task-cln-02` |
-| TASK-CLN-03 | `codex/task-cln-03` |
-| TASK-CLN-04 | `codex/task-cln-04` |
-| TASK-CLN-05 | `codex/task-cln-05` |
-| TASK-CLN-06 | `codex/task-cln-06` |
-| TASK-SCH-04 (B contribution) | `codex/task-sch-04-member-b` |
-| TASK-SCH-06 (B review) | `codex/task-sch-06-member-b` |
-| TASK-QA-01 (B contribution) | `codex/task-qa-01-member-b` |
-| TASK-QA-03 (B contribution) | `codex/task-qa-03-member-b` |
-| TASK-QA-04 (B contribution) | `codex/task-qa-04-member-b` |
-| TASK-QA-06 (B contribution) | `codex/task-qa-06-member-b` |
-| TASK-UI-07 (B screens) | `codex/task-ui-07-member-b` |
-| TASK-OPS-03 (B guide) | `codex/task-ops-03-member-b` |
+| TASK-SET-02 | `member-b/confirm-clinic-rules` |
+| TASK-SET-06 (B contribution) | `member-b/patient-clinical-contract` |
+| TASK-UI-02 (B contribution) | `member-b/patient-plan-wireframes` |
+| TASK-PAT-01 | `member-b/patient-schema` |
+| TASK-PAT-02 | `member-b/registration-search` |
+| TASK-PAT-03 | `member-b/patient-screens` |
+| TASK-CON-01 | `member-b/consultation-drafts` |
+| TASK-CON-02 | `member-b/signing-addenda` |
+| TASK-CON-03 | `member-b/consultation-screens` |
+| TASK-CON-04 | `member-b/patient-consultation-tests` |
+| TASK-CLN-01 | `member-b/pathway-schema` |
+| TASK-CLN-02 | `member-b/plan-approval` |
+| TASK-CLN-03 | `member-b/hold-resume-cancel` |
+| TASK-CLN-04 | `member-b/session-clearance` |
+| TASK-CLN-05 | `member-b/plan-screens` |
+| TASK-CLN-06 | `member-b/clinical-transition-tests` |
+| TASK-SCH-04 (B contribution) | `member-b/session-delivery-integration` |
+| TASK-SCH-06 (B review) | `member-b/scheduling-test-review` |
+| TASK-QA-01 (B contribution) | `member-b/clinical-test-examples` |
+| TASK-QA-03 (B contribution) | `member-b/journey-integration-fixes` |
+| TASK-QA-04 (B contribution) | `member-b/clinical-audit-review` |
+| TASK-QA-06 (B contribution) | `member-b/clinic-uat-support` |
+| TASK-UI-07 (B screens) | `member-b/clinical-screen-accessibility` |
+| TASK-OPS-03 (B guide) | `member-b/patient-clinical-guide` |
 
 ## Sprint 1 — decisions, contracts, and registration (weeks 1–2)
 
-- [ ] **TASK-SET-02 — Confirm clinic rules (DEC01–02).** With the clinic reviewer, record patient/contact and consultation fields, identity normalization, clinician record access, the one pathway, stage/session checklists, and completion conditions. Record unresolved decisions with owners and gates; do not treat provisional rules as approved.
+- [x] **TASK-SET-02 — Record development rules and open clinic gates (DEC01–02).** The synthetic-development contract and unresolved clinic decisions with owners/gates are in `docs/clinic-rules-review.md`. The project owner waived waiting for signoff on this planning task; DEC01–02 clinic approval and affected feature UAT remain pending. Do not treat provisional rules as approved clinic policy.
 - [ ] **TASK-SET-06 — Supply B's schema and API contracts.** Agree patient, encounter/addendum, plan/stage, and clinical-clearance IDs and relationships with A and C. Define request/response fields, role and record restrictions, validation, conflicts, and migration numbers in the shared OpenAPI contract. A coordinates the shared contract.
 - [ ] **TASK-UI-02 — Design patient and care-plan screens with F.** Show draft versus signed notes, addenda, approval history, current stage, and hold/cancel states. Use F's shared components when available.
 - [ ] **TASK-PAT-01 (PAT-01) — Create the patient schema and validation.** Store a server-generated internal ID, name, agreed contact fields, and optional NIC/passport. Enforce uniqueness of a supplied *normalized* identity in PostgreSQL; allow patients without an identity number.
