@@ -1,14 +1,15 @@
 # Clinic rules review — DEC01 and DEC02
 
-This is the review record for `TASK-SET-02` (Member B; clinic reviewer). It turns the open decisions in SRS v1.0 into questions that can be answered and signed off. **No clinic-specific answer or approval is recorded yet.** The requirements below are the SRS baseline; they do not substitute for a clinic decision. Keep `docs/decisions.md` marked pending until the relevant reviewers approve a dated answer.
+This is the review record for `TASK-SET-02` (Member B; clinic reviewer). It turns the open decisions in SRS v1.0 into questions that can be answered and signed off. Member B has confirmed their role, but their personal name has not been supplied. The review packet is prepared on `member-b/confirm-clinic-rules`. **No clinic-specific answer or approval is recorded yet.** The requirements below are the SRS baseline; they do not substitute for a clinic decision. Keep `docs/decisions.md` marked pending until the relevant reviewers approve a dated answer.
 
 ## Review record
 
 | Item | Value to record |
 | --- | --- |
+| Project and institution | AyurFlow — Group 04, IS5109 Community Project; Sabaragamuwa University of Sri Lanka, Faculty of Computing, Department of Computing and Information Systems (SRS v1.0 document control) |
 | Clinic reviewer name and role | Pending |
-| Team Member B name | Pending |
-| Team lead / supervisor names and roles | Pending |
+| Team Member B name | Role confirmed by the current user; name pending |
+| Team lead / supervisor names and roles | Team lead pending. SRS v1.0 names Mrs K. T. Dananjali as supervisor, with spelling and designation still to be confirmed. |
 | Review date and SRS version | Pending; SRS v1.0 is the current review baseline |
 | Evidence location (signed notes, letter, or meeting record) | Pending; store approved evidence in the team's agreed location |
 | Outcome | Pending — approved, approved with conditions, or returned for revision |
@@ -22,7 +23,7 @@ Do not put real patient records, passwords, or private contact details in this r
 | What is the clinic's approved name and the organisation named in the proposal and pilot materials? | Pending |
 | Who may speak for the clinic in clinical workflow review and pilot acceptance? Record role and approval authority. | Pending |
 | Is the organisation letter available, and where is the approved copy kept? | Pending |
-| Who is the academic supervisor, and what review or approval is required from them? | Pending |
+| Confirm the academic supervisor's spelling, designation, and required review or approval. | SRS v1.0 provisionally names Mrs K. T. Dananjali; confirmation pending. |
 | What are the kickoff, requirements review, clinic demonstration, and acceptance review dates? | Pending |
 
 DEC01 is complete only when the team, clinic, and supervisor agree these details and the review evidence is recorded. This does not itself authorise real patient data use; that is DEC05.
@@ -81,6 +82,17 @@ Use synthetic records only. Add clinic-specific expected outcomes to the evidenc
 
 ## Closure and handoff
 
-Before marking `TASK-SET-02` complete, record dated answers and clinic evidence for DEC01–02, obtain the required clinic/supervisor review, and update `docs/decisions.md`. Then give A the agreed fields and access rules for the shared schema/auth contract, C the stage/session clearance examples, and F the screen states. B can draft migrations and UI against reviewed examples, but affected feature acceptance remains gated on approved answers.
+| Decision | Current state | Needed to close |
+| --- | --- | --- |
+| DEC01 | Pending clinic/team/supervisor confirmation | Clinic identity, authorised reviewer, organisation letter, supervisor details, review dates and evidence reference |
+| DEC02 | Pending clinic clinician confirmation | Patient/consultation fields, identity normalisation, record access, pathway order, approval and completion rules, with examples and evidence reference |
+
+Before marking `TASK-SET-02` complete, record dated answers and clinic evidence for DEC01–02, obtain the required clinic/supervisor review, and update `docs/decisions.md`. Then give A the agreed fields and access rules for the shared schema/auth contract, C the stage/session clearance examples, and F the screen states. Record each handoff's recipient, date and reviewed contract link here. B can draft migrations and UI against reviewed examples, but affected feature acceptance remains gated on approved answers.
+
+| Handoff | Recipient/date | Reviewed evidence |
+| --- | --- | --- |
+| Agreed patient and consultation fields, identity handling and clinical record access | A — pending | Pending |
+| Agreed stages, approval/completion and session-start examples, including DEC08 interaction | C — pending | Pending |
+| Registration, consultation and plan screen states and allowed actions | F — pending | Pending |
 
 Sources: AyurFlow Software Requirements Specification v1.0, sections 2, 5–7, 12–18; AyurFlow Team Task Plan, `TASK-SET-02`, `TASK-SET-06`, `TASK-UI-02`, and Member B ownership.
