@@ -22,3 +22,5 @@ Each owner delivers migrations, behavior, screens, permission/audit checks and t
 | 5 | 9-10 | Contingency, clean deployment, training and reviewed handover |
 
 Scaffold creation supports TASK-SET-05 and establishes a starting point for TASK-SET-06. Neither task is complete until contracts are reviewed and every team member can start the application. All feature tasks and AT01-AT17 remain pending.
+
+Track assignments, status, review and evidence for all 64 task IDs in [the task board](task-board.md). The A–F slots still need confirmed names; creating the board does not complete TASK-SET-01.
