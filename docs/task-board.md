@@ -4,12 +4,12 @@ This is the single tracking board for the 64 tasks in the *AyurFlow Team task pl
 
 ## Assignment and status rules
 
-**Assignment slots are provisional.** The user has identified themselves as Member A, but no team member names or clinic reviewers have been supplied. Add the confirmed name for each A–F slot and for the team lead below; then confirm the accountable person and reviewer for **each row**. A review slot is a proposed peer reviewer, not clinic approval. The clinic reviewer for DEC01–06/08 and UAT must be named separately when agreed. Until that happens, `TASK-SET-01` remains in progress.
+**Assignment slots are provisional.** The current user has confirmed they are Member B; their personal name and the other team member names have not been supplied. Add the confirmed name for each A–F slot and for the team lead below; then confirm the accountable person and reviewer for **each row**. A review slot is a proposed peer reviewer, not clinic approval. The clinic reviewer for DEC01–06/08 and UAT must be named separately when agreed. Until that happens, `TASK-SET-01` remains in progress.
 
 | Slot | Confirmed name | Primary area | Peer reviewer |
 | --- | --- | --- | --- |
 | A | Pending | Shared API, auth, audit, deployment | F |
-| B | Pending | Patients and clinical workflow | C |
+| B | Current user; name pending | Patients and clinical workflow | C |
 | C | Pending | Scheduling and session delivery | B |
 | D | Pending | Inventory and preparation | E |
 | E | Pending | Billing | D |
@@ -23,7 +23,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 | Task | Deliverable | Owner slot | Peer reviewer | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | TASK-SET-01 | Named assignments, one board, sprint reviews | A coordinates | F | In progress | This board; names/reviews pending |
-| TASK-SET-02 | Clinic identity, patient fields, access, pathway | B | C; clinic review | Pending | — |
+| TASK-SET-02 | Clinic identity, patient fields, access, pathway | B | C; clinic review | In progress | `member-b/confirm-clinic-rules`; review packet prepared, clinic decisions pending |
 | TASK-SET-03 | Availability, recipe/expiry and billing examples | C coordinates D/E | B; clinic review | Pending | — |
 | TASK-SET-04 | IDs, units, errors, sessions and retry conventions | A | F; all owners review | Pending | — |
 | TASK-SET-05 | Working repo, migrations, synthetic seed and checks | A | F | In progress | Scaffold exists; member startup pending |
