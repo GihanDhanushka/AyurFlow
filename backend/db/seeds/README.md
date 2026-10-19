@@ -1,5 +1,7 @@
 # Synthetic development seeds
 
-Reference roles are populated by migration 000002. No login account is created by the scaffold. Add an explicit seed command after Argon2id handling and patient fields have been implemented and reviewed.
+Reference roles are populated by migration 000002. No login account is created automatically. `go run ./cmd/seedstaff` from `backend/` creates **one** synthetic staff account after migrations. It requires explicit `APP_ENV=development`, `DATABASE_URL`, `SEED_STAFF_LOGIN`, `SEED_STAFF_PASSWORD` and comma-separated `SEED_STAFF_ROLES` environment variables. The login is normalized to lowercase; the password must contain at least 12 Unicode characters and at most 1024 UTF-8 bytes. Roles must match the catalog in migration 000002. Supply a unique synthetic password through your local environment or password manager; never commit it or pass it as a command-line argument.
+
+The command refuses non-development environments, does not print the password or account details and uses a transaction for account plus roles. Repeating the command for an existing login makes no change, including no password rotation. Clear `SEED_STAFF_PASSWORD` from the environment afterward. This is a development bootstrap, not a production account creation path; it does not seed patient data or satisfy AT01. Initial bootstrap has no prior actor for an application audit event. All later role/account changes must use the audited administrator workflow from TASK-AUTH-04/05.
 
 Synthetic patient examples live in `tests/fixtures/patients.json`. They are not imported into the database yet. Seed commands must be repeatable and refuse accidental real-data production use. Do not commit real patient records or default administrator passwords.
