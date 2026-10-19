@@ -11,32 +11,32 @@ The current user has confirmed they are **Member B**. Their personal name is sti
 
 ## Current work and branch order
 
-`TASK-SET-02` is **in progress** on the existing `member-b/confirm-clinic-rules` branch. Its DEC01–02 clinic review record exists in [clinic-rules-review.md](clinic-rules-review.md), and an additional project-identity note is committed on that branch but is not yet integrated into `dev`. The clinic answers, named reviewer, dated approval and handoff are still pending. No patient or clinical feature endpoint has been implemented. Every other B-owned feature below remains Pending; none of AT02–05 has passed.
+`TASK-SET-02` has a recorded provisional development contract on `member-b/confirm-clinic-rules`. Its DEC01–02 clinic review record is in [clinic-rules-review.md](clinic-rules-review.md). The user directed this planning task to finish without waiting for clinic signoff; clinic answers and affected feature UAT remain pending. No patient or clinical feature endpoint has been implemented. Every other B-owned feature below remains Pending; none of AT02–05 has passed.
 
-For every new TASK ID, start a **new branch** from the latest integrated `dev`; keep one TASK ID per branch and put its branch/PR in the board. The names below are suggested branch names, not existing branches. Shared tasks owned by A, C or F use that task owner's branch, with B contributing there. The existing `TASK-SET-02` branch keeps its name.
+For every new B-owned TASK ID, start a **new branch** from the latest integrated `dev` named `member-b/<description-of-work>`; use lowercase words and hyphens because Git branch names cannot contain spaces. Keep one TASK ID per branch and put its branch/PR in the board. The names below describe the work and are suggestions until their branches are created. Shared tasks owned by A, C or F use that task owner's branch, with B contributing there. The existing `TASK-SET-02` branch already follows this pattern.
 
 | B-owned task | Status | Branch | Depends on / acceptance gate |
 | --- | --- | --- | --- |
-| TASK-SET-02 | In progress | `member-b/confirm-clinic-rules` (existing) | Named clinic review, DEC01–02 answers and evidence |
-| TASK-PAT-01 | Pending | `task/task-pat-01-patient-schema` | SET-02/06; agreed fields and uniqueness |
-| TASK-PAT-02 | Pending | `task/task-pat-02-registration-search` | PAT-01, AUTH-03/05; AT02 behavior |
-| TASK-PAT-03 | Pending | `task/task-pat-03-patient-screens` | PAT-02, UI-02/06; registration and lookup |
-| TASK-CON-01 | Pending | `task/task-con-01-consultation-drafts` | PAT-01, SET-02, AUTH-03; draft without plan |
-| TASK-CON-02 | Pending | `task/task-con-02-signing-addenda` | CON-01, AUTH-05; AT03 immutability |
-| TASK-CON-03 | Pending | `task/task-con-03-consultation-screens` | CON-02, UI-02/06; history UI |
-| TASK-CON-04 | Pending | `task/task-con-04-patient-clinical-tests` | PAT-02/03, CON-01/03; AT02–03 and C review |
-| TASK-CLN-01 | Pending | `task/task-cln-01-pathway-schema` | SET-02/06, PAT-01; approved pathway |
-| TASK-CLN-02 | Pending | `task/task-cln-02-plan-approval` | CLN-01, AUTH-03/05; AT04 |
-| TASK-CLN-03 | Pending | `task/task-cln-03-hold-resume-cancel` | CLN-02, SCH-01, DEC08; AT05 |
-| TASK-CLN-04 | Pending | `task/task-cln-04-session-clearance` | CLN-02/03, SCH-03; start/hold race |
-| TASK-CLN-05 | Pending | `task/task-cln-05-plan-screens` | CLN-02/04, UI-02/06; clinician actions |
-| TASK-CLN-06 | Pending | `task/task-cln-06-transition-tests` | CLN-03/05, SCH-04; AT04–05 and C review |
+| TASK-SET-02 | Done for development planning | `member-b/confirm-clinic-rules` (existing) | DEC01–02 clinic decisions remain gates for affected UAT |
+| TASK-PAT-01 | Pending | `member-b/patient-schema` | SET-02/06; agreed fields and uniqueness |
+| TASK-PAT-02 | Pending | `member-b/registration-search` | PAT-01, AUTH-03/05; AT02 behavior |
+| TASK-PAT-03 | Pending | `member-b/patient-screens` | PAT-02, UI-02/06; registration and lookup |
+| TASK-CON-01 | Pending | `member-b/consultation-drafts` | PAT-01, SET-02, AUTH-03; draft without plan |
+| TASK-CON-02 | Pending | `member-b/signing-addenda` | CON-01, AUTH-05; AT03 immutability |
+| TASK-CON-03 | Pending | `member-b/consultation-screens` | CON-02, UI-02/06; history UI |
+| TASK-CON-04 | Pending | `member-b/patient-consultation-tests` | PAT-02/03, CON-01/03; AT02–03 and C review |
+| TASK-CLN-01 | Pending | `member-b/pathway-schema` | SET-02/06, PAT-01; approved pathway |
+| TASK-CLN-02 | Pending | `member-b/plan-approval` | CLN-01, AUTH-03/05; AT04 |
+| TASK-CLN-03 | Pending | `member-b/hold-resume-cancel` | CLN-02, SCH-01, DEC08; AT05 |
+| TASK-CLN-04 | Pending | `member-b/session-clearance` | CLN-02/03, SCH-03; start/hold race |
+| TASK-CLN-05 | Pending | `member-b/plan-screens` | CLN-02/04, UI-02/06; clinician actions |
+| TASK-CLN-06 | Pending | `member-b/clinical-transition-tests` | CLN-03/05, SCH-04; AT04–05 and C review |
 
 Tasks may be prepared while decisions are pending, but they cannot be marked Done until their dependencies, integration evidence and reviewer checks pass. Do not use provisional pathway or field choices as clinic approval.
 
 ## Sprint 1 — decisions, contracts, and registration (weeks 1–2)
 
-- [ ] **TASK-SET-02 — Confirm clinic rules (DEC01–02; in progress).** With the clinic reviewer, record patient/contact and consultation fields, identity normalization, clinician record access, the one pathway, stage/session checklists, and completion conditions. Record unresolved decisions with owners and gates; do not treat provisional rules as approved.
+- [x] **TASK-SET-02 — Record development rules and open clinic gates (DEC01–02).** The synthetic-development contract and unresolved clinic decisions with owners/gates are in [clinic-rules-review.md](clinic-rules-review.md). The user waived waiting for signoff on this planning task; DEC01–02 clinic decisions and affected feature UAT remain pending. Do not treat provisional rules as approved clinic policy.
 - [ ] **TASK-SET-06 — Supply B's schema and API contracts.** Agree patient, encounter/addendum, plan/stage, and clinical-clearance IDs and relationships with A and C. Define request/response fields, role and record restrictions, validation, conflicts, and migration numbers in the shared OpenAPI contract. A coordinates the shared contract.
 - [ ] **TASK-UI-02 — Design patient and care-plan screens with F.** Show draft versus signed notes, addenda, approval history, current stage, and hold/cancel states. Use F's shared components when available.
 - [ ] **TASK-PAT-01 (PAT-01) — Create the patient schema and validation.** Store a server-generated internal ID, name, agreed contact fields, and optional NIC/passport. Enforce uniqueness of a supplied *normalized* identity in PostgreSQL; allow patients without an identity number.

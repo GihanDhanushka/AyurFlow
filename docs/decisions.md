@@ -4,6 +4,8 @@ All decisions below remain pending; the scaffold makes no clinic approval claim.
 
 Member B's [DEC01–02 clinic review record](clinic-rules-review.md) lists the questions and evidence needed to close the first two decisions. It contains no clinic approval yet.
 
+For `TASK-SET-02`, Member B has recorded a provisional synthetic-development contract in that review record. The current user directed the planning task to proceed without waiting for clinic signoff. DEC01 and DEC02 remain pending clinic/team decisions for their stated UAT/release gates; the provisional rules must not be represented as clinic-approved or used as real-data authorization.
+
 | ID | Owner / gate | Resolution required |
 | --- | --- | --- |
 | DEC01 | Team, clinic, supervisor / week 1 | Clinic identity, organization letter, supervisor details, review dates |

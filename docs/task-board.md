@@ -23,7 +23,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 | Task | Deliverable | Owner slot | Peer reviewer | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | TASK-SET-01 | Named assignments, one board, sprint reviews | A coordinates | F | In progress | This board; names/reviews pending |
-| TASK-SET-02 | Clinic identity, patient fields, access, pathway | B | C; clinic review | In progress | `member-b/confirm-clinic-rules`; review packet prepared, clinic decisions pending |
+| TASK-SET-02 | Clinic identity, patient fields, access, pathway | B | C; clinic review | Done | `member-b/confirm-clinic-rules`; interim rules and DEC01–02 open owners/gates recorded. Clinic approval remains a separate UAT gate. |
 | TASK-SET-03 | Availability, recipe/expiry and billing examples | C coordinates D/E | B; clinic review | Pending | — |
 | TASK-SET-04 | IDs, units, errors, sessions and retry conventions | A | F; all owners review | Pending | — |
 | TASK-SET-05 | Working repo, migrations, synthetic seed and checks | A | F | In progress | Scaffold exists; member startup pending |
