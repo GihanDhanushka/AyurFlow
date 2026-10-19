@@ -12,7 +12,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Go vet failed.' }
     & $goExecutable test ./...
     if ($LASTEXITCODE -ne 0) { throw 'Go tests failed.' }
-    & $goExecutable build ./cmd/api ./cmd/migrate
+    & $goExecutable build ./cmd/api ./cmd/migrate ./cmd/seedstaff
     if ($LASTEXITCODE -ne 0) { throw 'Go build failed.' }
 } finally { Pop-Location }
 

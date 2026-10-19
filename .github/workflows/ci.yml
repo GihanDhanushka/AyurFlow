@@ -23,7 +23,7 @@ jobs:
       - run: test -z "$(gofmt -l .)"
       - run: go vet ./...
       - run: go test ./...
-      - run: go build ./cmd/api ./cmd/migrate
+      - run: go build ./cmd/api ./cmd/migrate ./cmd/seedstaff
 
   frontend:
     runs-on: ubuntu-latest

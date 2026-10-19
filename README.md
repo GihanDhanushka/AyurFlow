@@ -40,7 +40,7 @@ AyurFlow/
 └── compose.yaml                Development database, migration, API and UI
 ```
 
-The backend uses handlers, services and repositories within each module as features are introduced. Go owns business rules and transactions. Next.js calls `/api/v1`; it has no database connection.
+The backend uses handlers, services and repositories within each module as features are introduced. Go owns business rules and transactions. Next.js calls `/api/v1`; it has no database connection. Argon2id password hashing and an explicit development-only synthetic staff seed command are available; login and authorization are not yet implemented. See [seed instructions](backend/db/seeds/README.md).
 
 ## Start with Docker
 

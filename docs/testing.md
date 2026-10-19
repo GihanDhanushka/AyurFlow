@@ -2,6 +2,8 @@
 
 Starter automated checks cover Go build/vet, health-vs-readiness behavior, frontend ESLint, TypeScript and production build. These are foundation checks, not pilot acceptance.
 
+TASK-AUTH-01 implementation check (19 October 2026, Windows, Go 1.27.1): `go fmt ./...`, `go vet ./...`, `go test -count=1 ./...` and `go build ./cmd/api ./cmd/migrate ./cmd/seedstaff` passed. Tests cover Argon2id round-trip, wrong passwords, unique salts, malformed/oversized hashes and development-only seed input validation. A live PostgreSQL seed/repeat test and F review remain outstanding; AT01 remains pending because login, sessions, CSRF and role/record checks are not implemented.
+
 Scaffold verification on 2 October 2026: Go formatting, vet, tests and both command builds passed; frontend lint, typecheck and production build passed; JSON and YAML syntax checks passed. Docker is not installed on the verification machine, so container startup, SQL execution and restart persistence remain unverified. No AT01-AT17 result is marked passed.
 
 | Test | Scope | Proposed owner | Status |
