@@ -1,41 +1,42 @@
 # Member B task list
 
-Member B owns patient records, consultations, care plans, and clinician decisions. Member C reviews B's work and owns scheduling; Member B reviews C's scheduling work. This checklist follows the SRS v1.0 and team task plan dated 1 October 2026. `TASK-SET-02` has a provisional development contract; its clinic decisions remain pending, and all B-owned feature implementation remains pending. Weeks are relative to the team's implementation kickoff.
+The current user has confirmed they are **Member B**. Their personal name is still unrecorded. B owns patient records, consultations, care plans, and clinician decisions. C reviews B's work and owns scheduling; B reviews C's scheduling work. This one file tracks B's work from SRS v1.0 and the 1 October 2026 team task plan. Weeks are relative to implementation kickoff. The project-wide board tracks all 64 tasks separately.
 
-## Branches
+## Source review and existing work
 
-Use `member-b/<description-of-work>` for each Member B task branch, with lowercase words separated by hyphens. Create a new branch from the latest integrated `dev` when that task starts; the names below are planned names, not claims that branches already exist. The existing `member-b/confirm-clinic-rules` branch is in use for `TASK-SET-02`. For a task led by another member, B's contribution or review has its own clearly named branch and is integrated with that task owner. The four completion-rule checkboxes below apply to every feature and are not separate tasks.
+- The available SRS v1.0 defines optional NIC/passport, safe identity uniqueness, Unicode search, immutable signed consultations with addenda, one ordered approved pathway, and current-stage clearance at session start. Member B's primary acceptance evidence is AT02–05; B also reviews C's AT06–07 scheduling integration. Clinical clearance does not depend on invoice balance.
+- The team plan contains 64 tasks in five two-week sprints. Sprint 1 requires a deployed login → registration → search flow; Sprint 2 requires consultation → approved plan → conflict-safe booking → authorised start. B's feature work depends on A's authentication, record access and audit foundation; C's session work; and F's shared UI.
+- Integrated `dev` has Go/Gin and Next.js scaffolds, foundation migrations, health/readiness, Argon2id helpers and a development-only synthetic staff seed. Patient and clinical module folders and screens are placeholders. Protected patient/clinical APIs, feature migrations, browser flows and AT02–05 evidence are absent.
+- DEC01–02 clinic rules and DEC08 session/plan details still need reviewers and dated decisions. The SRS and task plan were available for this review; the reduced-scope proposal referenced by them was not available in this workspace. No clinic approval or real-data authorisation is implied by these documents.
 
-| Task | Branch |
-| --- | --- |
-| TASK-SET-02 | `member-b/confirm-clinic-rules` |
-| TASK-SET-06 (B contribution) | `member-b/patient-clinical-contract` |
-| TASK-UI-02 (B contribution) | `member-b/patient-plan-wireframes` |
-| TASK-PAT-01 | `member-b/patient-schema` |
-| TASK-PAT-02 | `member-b/registration-search` |
-| TASK-PAT-03 | `member-b/patient-screens` |
-| TASK-CON-01 | `member-b/consultation-drafts` |
-| TASK-CON-02 | `member-b/signing-addenda` |
-| TASK-CON-03 | `member-b/consultation-screens` |
-| TASK-CON-04 | `member-b/patient-consultation-tests` |
-| TASK-CLN-01 | `member-b/pathway-schema` |
-| TASK-CLN-02 | `member-b/plan-approval` |
-| TASK-CLN-03 | `member-b/hold-resume-cancel` |
-| TASK-CLN-04 | `member-b/session-clearance` |
-| TASK-CLN-05 | `member-b/plan-screens` |
-| TASK-CLN-06 | `member-b/clinical-transition-tests` |
-| TASK-SCH-04 (B contribution) | `member-b/session-delivery-integration` |
-| TASK-SCH-06 (B review) | `member-b/scheduling-test-review` |
-| TASK-QA-01 (B contribution) | `member-b/clinical-test-examples` |
-| TASK-QA-03 (B contribution) | `member-b/journey-integration-fixes` |
-| TASK-QA-04 (B contribution) | `member-b/clinical-audit-review` |
-| TASK-QA-06 (B contribution) | `member-b/clinic-uat-support` |
-| TASK-UI-07 (B screens) | `member-b/clinical-screen-accessibility` |
-| TASK-OPS-03 (B guide) | `member-b/patient-clinical-guide` |
+## Current work and branch order
+
+`TASK-SET-02` has a recorded provisional development contract on `member-b/confirm-clinic-rules`. Its DEC01–02 clinic review record is in [clinic-rules-review.md](clinic-rules-review.md). The user directed this planning task to finish without waiting for clinic signoff; clinic answers and affected feature UAT remain pending. No patient or clinical feature endpoint has been implemented. Every other B-owned feature below remains Pending; none of AT02–05 has passed.
+
+For every new B-owned TASK ID, start a **new branch** from the latest integrated `dev` named `member-b/<description-of-work>`; use lowercase words and hyphens because Git branch names cannot contain spaces. Keep one TASK ID per branch and put its branch/PR in the board. The names below describe the work and are suggestions until their branches are created. Shared tasks owned by A, C or F use that task owner's branch, with B contributing there. The existing `TASK-SET-02` branch already follows this pattern.
+
+| B-owned task | Status | Branch | Depends on / acceptance gate |
+| --- | --- | --- | --- |
+| TASK-SET-02 | Done for development planning | `member-b/confirm-clinic-rules` (existing) | DEC01–02 clinic decisions remain gates for affected UAT |
+| TASK-PAT-01 | Pending | `member-b/patient-schema` | SET-02/06; agreed fields and uniqueness |
+| TASK-PAT-02 | Pending | `member-b/registration-search` | PAT-01, AUTH-03/05; AT02 behavior |
+| TASK-PAT-03 | Pending | `member-b/patient-screens` | PAT-02, UI-02/06; registration and lookup |
+| TASK-CON-01 | Pending | `member-b/consultation-drafts` | PAT-01, SET-02, AUTH-03; draft without plan |
+| TASK-CON-02 | Pending | `member-b/signing-addenda` | CON-01, AUTH-05; AT03 immutability |
+| TASK-CON-03 | Pending | `member-b/consultation-screens` | CON-02, UI-02/06; history UI |
+| TASK-CON-04 | Pending | `member-b/patient-consultation-tests` | PAT-02/03, CON-01/03; AT02–03 and C review |
+| TASK-CLN-01 | Pending | `member-b/pathway-schema` | SET-02/06, PAT-01; approved pathway |
+| TASK-CLN-02 | Pending | `member-b/plan-approval` | CLN-01, AUTH-03/05; AT04 |
+| TASK-CLN-03 | Pending | `member-b/hold-resume-cancel` | CLN-02, SCH-01, DEC08; AT05 |
+| TASK-CLN-04 | Pending | `member-b/session-clearance` | CLN-02/03, SCH-03; start/hold race |
+| TASK-CLN-05 | Pending | `member-b/plan-screens` | CLN-02/04, UI-02/06; clinician actions |
+| TASK-CLN-06 | Pending | `member-b/clinical-transition-tests` | CLN-03/05, SCH-04; AT04–05 and C review |
+
+Tasks may be prepared while decisions are pending, but they cannot be marked Done until their dependencies, integration evidence and reviewer checks pass. Do not use provisional pathway or field choices as clinic approval.
 
 ## Sprint 1 — decisions, contracts, and registration (weeks 1–2)
 
-- [x] **TASK-SET-02 — Record development rules and open clinic gates (DEC01–02).** The synthetic-development contract and unresolved clinic decisions with owners/gates are in `docs/clinic-rules-review.md`. The project owner waived waiting for signoff on this planning task; DEC01–02 clinic approval and affected feature UAT remain pending. Do not treat provisional rules as approved clinic policy.
+- [x] **TASK-SET-02 — Record development rules and open clinic gates (DEC01–02).** The synthetic-development contract and unresolved clinic decisions with owners/gates are in [clinic-rules-review.md](clinic-rules-review.md). The user waived waiting for signoff on this planning task; DEC01–02 clinic decisions and affected feature UAT remain pending. Do not treat provisional rules as approved clinic policy.
 - [ ] **TASK-SET-06 — Supply B's schema and API contracts.** Agree patient, encounter/addendum, plan/stage, and clinical-clearance IDs and relationships with A and C. Define request/response fields, role and record restrictions, validation, conflicts, and migration numbers in the shared OpenAPI contract. A coordinates the shared contract.
 - [ ] **TASK-UI-02 — Design patient and care-plan screens with F.** Show draft versus signed notes, addenda, approval history, current stage, and hold/cancel states. Use F's shared components when available.
 - [ ] **TASK-PAT-01 (PAT-01) — Create the patient schema and validation.** Store a server-generated internal ID, name, agreed contact fields, and optional NIC/passport. Enforce uniqueness of a supplied *normalized* identity in PostgreSQL; allow patients without an identity number.
@@ -78,4 +79,4 @@ Use `member-b/<description-of-work>` for each Member B task branch, with lowerca
 - **Member C:** Session schema, booking, therapist delivery, and plan/session transition contract must agree with B's clinical model.
 - **Member F:** Shared UI patterns and end-to-end integration support B's screens; B still owns their implementation and tests.
 
-Source documents: `C:/Users/ASUS/Downloads/AyurFlow_Software_Requirements_Specification.pdf` and `C:/Users/ASUS/Downloads/AyurFlow_Team_Task_Plan.pdf`. The repository's `docs/decisions.md` and `docs/testing.md` track project-wide decisions and acceptance evidence.
+Source documents: SRS v1.0 and the team task plan listed in [source-documents.md](source-documents.md). [decisions.md](decisions.md) and [testing.md](testing.md) track project-wide decisions and acceptance evidence. The reduced-scope proposal is referenced by those documents but was not available in this workspace during this review.
