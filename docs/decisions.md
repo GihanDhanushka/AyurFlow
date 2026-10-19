@@ -14,3 +14,7 @@ All decisions below remain pending; the scaffold makes no clinic approval claim.
 | DEC08 | Team and clinic / before SRS approval | Resumption/cancellation, assigned therapist start, completion during hold, availability protection and concurrency semantics |
 
 Provisional API prefix: `/api/v1`. Error envelope: `{"error":{"code":"not_found","message":"..."}}`. These technical starter choices require team review alongside DEC07. No session timeout, clinical pathway or stock decimal scale is silently approved here.
+
+## DEC07 review packet
+
+Member A's [shared API and security contract draft](api/shared-contract.md) lists candidate session, throttling, recovery, CSRF, error and retry conventions with examples and a reviewer table. All DEC07 choices remain **pending** until A and the team record selected values, reviewer names and date here. No auth route or acceptance test may treat the candidate values as approved configuration.
