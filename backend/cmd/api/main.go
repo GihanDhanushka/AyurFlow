@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"ayurflow/backend/internal/auth"
 	"ayurflow/backend/internal/config"
 	"ayurflow/backend/internal/platform/database"
 	transport "ayurflow/backend/internal/transport/http"
@@ -37,7 +38,14 @@ func run() error {
 		return err
 	}
 	defer pool.Close()
-	router := transport.NewRouter(pool)
+	var router *gin.Engine
+	if cfg.Auth.Enabled {
+		router = transport.NewRouter(pool, transport.AuthRoutes{
+			Service: auth.NewService(pool, cfg.Auth), AllowedOrigin: cfg.Auth.AllowedOrigin,
+		})
+	} else {
+		router = transport.NewRouter(pool)
+	}
 	if err := router.SetTrustedProxies(nil); err != nil {
 		return err
 	}

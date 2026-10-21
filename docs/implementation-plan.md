@@ -10,7 +10,7 @@ The agreed reduced scope excludes public signup, automatic diagnosis, scheduling
 
 ## What exists now
 
-The repo has API process/configuration, a pgx pool, health/readiness, a forward migration runner, two foundation migrations, role catalog, a frontend shell, six placeholder module pages, a development Compose file and CI/check scripts. Only health/readiness are in OpenAPI. There is no implemented authentication, protected business endpoint, module workflow, synthetic seed importer, pilot HTTPS deployment or backup/restore system. `docs/testing.md` records earlier scaffold checks, not acceptance results.
+The repo has API process/configuration, a pgx pool, health/readiness, a forward migration runner, identity and throttle migrations, a role catalog, Argon2id credentials, an explicit development-only synthetic staff seed, and optional login/session/logout routes. Auth routes require explicit DEC07 policy values and an HTTPS origin; they are disabled by default. Only health/readiness are in OpenAPI pending auth contract review. There is no protected business endpoint, module workflow, pilot HTTPS deployment or backup/restore system. `docs/testing.md` records local checks, not acceptance results.
 
 ## Build sequence and dependencies
 
