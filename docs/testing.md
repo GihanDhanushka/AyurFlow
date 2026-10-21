@@ -6,6 +6,8 @@ TASK-AUTH-01 implementation check (19 October 2026, Windows, Go 1.27.1): `go fmt
 
 TASK-AUTH-02 local checks (21 October 2026, Windows): `go test -count=1 ./...`, `go vet ./...`, `go build ./cmd/api ./cmd/migrate ./cmd/seedstaff` and integration-test compilation passed. Unit tests cover secret hashing, cookie/origin/CSRF handler behavior and required-policy configuration. `go test -tags=integration ./internal/auth` contains a disposable PostgreSQL lifecycle case for throttling, session replacement, logout, idle/absolute expiry and disabled-account rejection. The database case could not run here because `AUTH_TEST_DATABASE_URL` and PostgreSQL are unavailable. `go test -race` could not build because the installed C compiler reports `64-bit mode not compiled in`. DEC07 and F review remain pending. AT01 is not passed; AUTH-03 role/record access and general CSRF checks remain to be implemented.
 
+The backend GitHub Actions job now starts a disposable PostgreSQL 17 service and runs the AUTH-02 integration test with synthetic credentials. This checks real migration and session SQL on each push/PR. Local execution is still available with a dedicated disposable database and `AUTH_TEST_DATABASE_URL`; do not point it at a shared or production database. CI results are recorded only after the remote job completes.
+
 Scaffold verification on 2 October 2026: Go formatting, vet, tests and both command builds passed; frontend lint, typecheck and production build passed; JSON and YAML syntax checks passed. Docker is not installed on the verification machine, so container startup, SQL execution and restart persistence remain unverified. No AT01-AT17 result is marked passed.
 
 | Test | Scope | Proposed owner | Status |
