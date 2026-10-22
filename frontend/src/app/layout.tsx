@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: "AyurFlow",
@@ -9,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <body>
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:bg-white focus:p-3">
           Skip to content
