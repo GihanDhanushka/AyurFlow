@@ -49,7 +49,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 | TASK-AUTH-02 | Login, logout, expiry, revocation, throttling | A | F | In review | Merged PR #12; [PostgreSQL CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/39788040138); DEC07/F/full AT01 pending |
 | TASK-AUTH-03 | Backend role/record checks, cookies and CSRF | A | F | Pending | — |
 | TASK-AUTH-04 | Login, account/role screens and disabling | A with F | F | Pending | — |
-| TASK-AUTH-05 | Transactional audit and restricted retrieval | A | F | In review | `codex/auth-05-audit`; writer/reader/migration tests and integration instructions; AUTH-03/module integration/F/full AT13 pending |
+| TASK-AUTH-05 | Transactional audit and restricted retrieval | A | F | In review | `codex/auth-05-audit`; [PostgreSQL/race CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/39791162419); AUTH-03/module integration/F/full AT13 pending |
 | TASK-AUTH-06 | AT01 identity/access and safe-log verification | A | F | Pending | — |
 
 ## 4. Patients and consultations (weeks 1–4)

@@ -186,6 +186,10 @@ func TestWriteAtomicityIntegration(t *testing.T) {
 		assertMutationAbsent(t, pool, "validation-failure")
 	})
 	t.Run("later business rollback removes audit", func(t *testing.T) {
+		var before int
+		if err := pool.QueryRow(t.Context(), `SELECT count(*) FROM audit_events`).Scan(&before); err != nil {
+			t.Fatal(err)
+		}
 		tx := beginAuditMutation(t, pool, "business-failure")
 		if err := Write(t.Context(), tx, validEvent()); err != nil {
 			t.Fatal(err)
@@ -198,7 +202,7 @@ func TestWriteAtomicityIntegration(t *testing.T) {
 		if err := pool.QueryRow(t.Context(), `SELECT count(*) FROM audit_events`).Scan(&count); err != nil {
 			t.Fatal(err)
 		}
-		if count != 1 {
+		if count != before {
 			t.Fatalf("rolled back audit survived: total=%d", count)
 		}
 	})
