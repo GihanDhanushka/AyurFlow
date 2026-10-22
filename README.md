@@ -59,7 +59,7 @@ This Compose file binds application/database ports to localhost for development.
 
 ## Start Go and Next.js locally
 
-Use Go 1.27.1 and Node.js 22.23.2. Start PostgreSQL using `docker compose up -d db` or your own PostgreSQL 17 installation. Create the `.env` file first if using Compose.
+Use Go 1.27.3 and Node.js 22.23.2. Start PostgreSQL using `docker compose up -d db` or your own PostgreSQL 17 installation. Create the `.env` file first if using Compose.
 
 Backend, in one PowerShell terminal:
 
@@ -85,6 +85,8 @@ Go reads environment variables directly; it does not load `.env` files automatic
 ## Checks and next implementation work
 
 Run `./scripts/check.ps1`, or run Go format/vet/test/build from `backend/` and frontend lint/typecheck/build from `frontend/`. Dependency resolution is captured in `go.sum` and `package-lock.json`.
+
+CI checks all Go packages, including real PostgreSQL tests tagged `integration`, plus static analysis, reachable vulnerability checks and the frontend clean install/build. For local database tests set `TEST_DATABASE_URL` to a disposable database. See [the CI and test guide](docs/ci-and-test-guide.md) before adding a module's tests.
 
 Start Sprint 1 with the pending decision register, authentication/permissions/CSRF, and patient registration. The first exit check is a deployed login-to-registration-to-search journey. Module folders and pages currently establish boundaries; they do not satisfy the SRS acceptance tests.
 

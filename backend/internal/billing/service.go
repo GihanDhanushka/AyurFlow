@@ -2,10 +2,13 @@ package billing
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -266,21 +269,41 @@ func (s *Service) PostReceipt(ctx context.Context, actorID, invoiceID string, re
 	if err := validatePostReceipt(req); err != nil {
 		return Receipt{}, err
 	}
+	canonicalInvoice, err := canonicalUUID(invoiceID)
+	if err != nil {
+		return Receipt{}, fmt.Errorf("%w: invoiceId must be a UUID", ErrValidation)
+	}
+	invoiceID = canonicalInvoice
+	// Validation above already checked this conversion. Canonicalize so alternate
+	// UUID spellings cannot acquire different locks for the same operation.
+	req.OperationID, err = canonicalUUID(req.OperationID)
+	if err != nil {
+		return Receipt{}, err
+	}
 
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
 		return Receipt{}, err
 	}
 	defer tx.Rollback(ctx)
+	if err := s.repo.LockReceiptOperation(ctx, tx, req.OperationID); err != nil {
+		return Receipt{}, err
+	}
 
 	// Idempotency check: return existing receipt if operationID already committed.
 	existing, err := s.repo.FindReceiptByOperationID(ctx, tx, req.OperationID)
 	if err == nil {
-		// Already committed — idempotent return. Roll back the read-only tx cleanly.
-		tx.Rollback(ctx)
+		sameTarget := existing.InvoiceID == invoiceID && existing.AmountMinor == req.AmountMinor
+		sameDetails := existing.PaymentMethod == req.PaymentMethod && existing.Label == req.Label
+		if !sameTarget || !sameDetails {
+			return Receipt{}, fmt.Errorf("%w: operationId was used with different receipt details", ErrConflict)
+		}
+		if err := tx.Commit(ctx); err != nil {
+			return Receipt{}, err
+		}
 		return existing, nil
 	}
-	if err != ErrNotFound {
+	if !errors.Is(err, ErrNotFound) {
 		return Receipt{}, err
 	}
 
@@ -297,7 +320,14 @@ func (s *Service) PostReceipt(ctx context.Context, actorID, invoiceID string, re
 	if err != nil {
 		return Receipt{}, err
 	}
-	if paid+req.AmountMinor > *inv.TotalMinor {
+	if inv.TotalMinor == nil || paid < 0 {
+		return Receipt{}, fmt.Errorf("%w: invalid invoice balance", ErrConflict)
+	}
+	total := *inv.TotalMinor
+	if total < 0 || paid > total {
+		return Receipt{}, fmt.Errorf("%w: invalid invoice balance", ErrConflict)
+	}
+	if req.AmountMinor > total-paid {
 		return Receipt{}, fmt.Errorf("%w: receipt amount would exceed the invoice total (outstanding: %d minor units)", ErrConflict, *inv.TotalMinor-paid)
 	}
 
@@ -391,8 +421,14 @@ func validateAddItem(req AddItemRequest) error {
 	if req.Quantity <= 0 {
 		errs = append(errs, "quantity must be positive")
 	}
+	if req.Quantity > math.MaxInt32 {
+		errs = append(errs, "quantity exceeds the database integer limit")
+	}
 	if req.UnitPriceMinor < 0 {
 		errs = append(errs, "unitPriceMinor must be non-negative")
+	}
+	if req.Quantity > 0 && req.UnitPriceMinor > math.MaxInt64/int64(req.Quantity) {
+		errs = append(errs, "line total exceeds supported money range")
 	}
 	if len(errs) > 0 {
 		return fmt.Errorf("%w: %s", ErrValidation, strings.Join(errs, "; "))
@@ -402,8 +438,8 @@ func validateAddItem(req AddItemRequest) error {
 
 func validatePostReceipt(req PostReceiptRequest) error {
 	var errs []string
-	if strings.TrimSpace(req.OperationID) == "" {
-		errs = append(errs, "operationId is required")
+	if _, err := canonicalUUID(req.OperationID); err != nil {
+		errs = append(errs, "operationId must be a UUID")
 	}
 	if req.AmountMinor <= 0 {
 		errs = append(errs, "amountMinor must be positive")
@@ -415,4 +451,12 @@ func validatePostReceipt(req PostReceiptRequest) error {
 		return fmt.Errorf("%w: %s", ErrValidation, strings.Join(errs, "; "))
 	}
 	return nil
+}
+
+func canonicalUUID(value string) (string, error) {
+	var id pgtype.UUID
+	if err := id.Scan(value); err != nil || !id.Valid || id.Bytes == [16]byte{} {
+		return "", ErrValidation
+	}
+	return id.String(), nil
 }

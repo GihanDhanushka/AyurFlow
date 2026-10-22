@@ -13,7 +13,8 @@ balance protection and idempotent receipt operations.
 | `repository.go` | ✅ Implemented | Parameterized pgx queries; FOR UPDATE locking; audit event helper |
 | `service.go` | ✅ Implemented | Full invoice lifecycle, idempotent receipt posting, balance derivation |
 | `handler.go` | ✅ Implemented | All route handlers; `RegisterRoutes` defined but **not wired** (AUTH-03 gate) |
-| `billing_test.go` | ✅ Implemented | Unit tests for validation logic; integration stub documented |
+| `billing_test.go` | ✅ Implemented | Validation tests, including integer bounds |
+| `service_integration_test.go` | ✅ Implemented | PostgreSQL retry, concurrency, overflow and audit rollback regressions |
 | `000004_billing.up.sql` | ✅ Written | invoices, invoice_items, receipts with constraints |
 | HTTP routes registered | ❌ Blocked | Requires TASK-AUTH-03 (Member A) — role/record middleware |
 | Patient FK enforced | ❌ Blocked | Requires TASK-PAT-01 (Member B) — patients table |
@@ -24,14 +25,18 @@ balance protection and idempotent receipt operations.
 - Money: **int64 LKR minor units** everywhere (Rs. 1 500.00 = 150000). No float64.
 - Instants: stored as UTC, displayed as Asia/Colombo by the frontend.
 - Rounding rule: **pending DEC04** clinic billing review.
-- Receipt `operation_id`: server UNIQUE constraint — idempotency gate for AT12.
+- Receipt `operation_id`: canonical UUID, transaction advisory lock and UNIQUE constraint. Identical retries return the original receipt; changed invoice, amount, method or label conflicts.
 
 ## Transaction rules
 
 Every mutation (create draft, add item, issue, void, post receipt) writes an
 `audit_events` row **in the same PostgreSQL transaction**. If the audit insert
 fails, the entire transaction rolls back. No orphan business state can exist
-without an audit record.
+without an audit record. Billing uses the shared `audit.Write` implementation.
+
+Run `go test -tags=integration -count=1 ./internal/billing` with a disposable
+`TEST_DATABASE_URL`. CI runs these tests with race detection and isolated schemas.
+These checks do not close the authorization, patient-FK or DEC04 gates.
 
 ## Authorization gate (AUTH-03 TODO markers in each method)
 

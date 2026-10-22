@@ -4,14 +4,11 @@ package audit
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
-	"os"
 	"testing"
 	"time"
 
-	"ayurflow/backend/db"
+	"ayurflow/backend/internal/testutil"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -20,53 +17,9 @@ import (
 
 func auditTestDatabase(t *testing.T) *pgxpool.Pool {
 	t.Helper()
-	url := os.Getenv("AUDIT_TEST_DATABASE_URL")
-	if url == "" {
-		if os.Getenv("CI") != "" {
-			t.Fatal("AUDIT_TEST_DATABASE_URL is required in CI")
-		}
-		t.Skip("AUDIT_TEST_DATABASE_URL is not set; requires a disposable PostgreSQL database")
-	}
-	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
-	defer cancel()
-	base, err := pgxpool.New(ctx, url)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(base.Close)
-	// Initialize shared extensions in public under the migration advisory lock
-	// before creating the test schema. Other packages can safely migrate in parallel.
-	if err := db.Migrate(ctx, base); err != nil {
-		t.Fatal(err)
-	}
-	var suffix [12]byte
-	if _, err := rand.Read(suffix[:]); err != nil {
-		t.Fatal(err)
-	}
-	schema := pgx.Identifier{"audit_test_" + hex.EncodeToString(suffix[:])}.Sanitize()
-	if _, err := base.Exec(ctx, "CREATE SCHEMA "+schema); err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() {
-		cleanup, stop := context.WithTimeout(context.Background(), 10*time.Second)
-		defer stop()
-		// This identifier is generated above, never taken from an environment or request.
-		if _, err := base.Exec(cleanup, "DROP SCHEMA "+schema+" CASCADE"); err != nil {
-			t.Errorf("remove isolated audit test schema: %v", err)
-		}
-	})
-	configuration := base.Config().Copy()
-	configuration.ConnConfig.RuntimeParams["search_path"] = schema
-	pool, err := pgxpool.NewWithConfig(ctx, configuration)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(pool.Close)
-	if err := db.Migrate(ctx, pool); err != nil {
-		t.Fatal(err)
-	}
-	_, err = pool.Exec(
-		ctx,
+	pool := testutil.Postgres(t, "AUDIT_TEST_DATABASE_URL")
+	_, err := pool.Exec(
+		t.Context(),
 		`INSERT INTO staff_accounts(id, login_identifier, password_hash)
 		 VALUES ($1, 'synthetic-audit-actor', '$argon2id$synthetic-non-login-fixture')`,
 		syntheticActor,
@@ -74,7 +27,7 @@ func auditTestDatabase(t *testing.T) *pgxpool.Pool {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := pool.Exec(ctx, `CREATE TABLE audit_test_mutations(id text PRIMARY KEY)`); err != nil {
+	if _, err := pool.Exec(t.Context(), `CREATE TABLE audit_test_mutations(id text PRIMARY KEY)`); err != nil {
 		t.Fatal(err)
 	}
 	return pool
