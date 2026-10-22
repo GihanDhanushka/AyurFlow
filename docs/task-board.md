@@ -103,7 +103,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 
 | Task | Deliverable | Owner slot | Peer reviewer | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| TASK-BILL-01 | Invoice/receipt schema and integer LKR | E | D | Pending | — |
+| TASK-BILL-01 | Invoice/receipt schema and integer LKR | E | D | In progress | `member-e/task-bill-01-invoice-schema`; domain types, repository, service, handler and migration written; routes not registered (AUTH-03 gate); patient FK deferred until PAT-01 |
 | TASK-BILL-02 | Draft editing and atomic invoice issue | E | D | Pending | — |
 | TASK-BILL-03 | Direct receipts, deposits and balance | E | D | Pending | — |
 | TASK-BILL-04 | Unique receipt operations and concurrency | E | D | Pending | — |
