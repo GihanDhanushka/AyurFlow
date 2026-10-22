@@ -18,7 +18,7 @@ For every new B-owned TASK ID, start a **new branch** from the latest integrated
 | B-owned task | Status | Branch | Depends on / acceptance gate |
 | --- | --- | --- | --- |
 | TASK-SET-02 | Done for development planning | `member-b/confirm-clinic-rules` (existing) | DEC01–02 clinic decisions remain gates for affected UAT |
-| TASK-PAT-01 | Pending | `member-b/patient-schema` | SET-02/06; agreed fields and uniqueness |
+| TASK-PAT-01 | In progress | `member-b/patient-schema` | Provisional schema/validation drafted; A migration number, C review, DEC02 and PostgreSQL proof pending |
 | TASK-PAT-02 | Pending | `member-b/registration-search` | PAT-01, AUTH-03/05; AT02 behavior |
 | TASK-PAT-03 | Pending | `member-b/patient-screens` | PAT-02, UI-02/06; registration and lookup |
 | TASK-CON-01 | Pending | `member-b/consultation-drafts` | PAT-01, SET-02, AUTH-03; draft without plan |
@@ -39,7 +39,7 @@ Tasks may be prepared while decisions are pending, but they cannot be marked Don
 - [x] **TASK-SET-02 — Record development rules and open clinic gates (DEC01–02).** The synthetic-development contract and unresolved clinic decisions with owners/gates are in [clinic-rules-review.md](clinic-rules-review.md). The user waived waiting for signoff on this planning task; DEC01–02 clinic decisions and affected feature UAT remain pending. Do not treat provisional rules as approved clinic policy.
 - [ ] **TASK-SET-06 — Supply B's schema and API contracts.** Agree patient, encounter/addendum, plan/stage, and clinical-clearance IDs and relationships with A and C. Define request/response fields, role and record restrictions, validation, conflicts, and migration numbers in the shared OpenAPI contract. A coordinates the shared contract.
 - [ ] **TASK-UI-02 — Design patient and care-plan screens with F.** Show draft versus signed notes, addenda, approval history, current stage, and hold/cancel states. Use F's shared components when available.
-- [ ] **TASK-PAT-01 (PAT-01) — Create the patient schema and validation.** Store a server-generated internal ID, name, agreed contact fields, and optional NIC/passport. Enforce uniqueness of a supplied *normalized* identity in PostgreSQL; allow patients without an identity number.
+- [ ] **TASK-PAT-01 (PAT-01) — Create the patient schema and validation.** Migration `000005_patients.up.sql` and Go validation are drafted on `member-b/patient-schema`. They store a server-generated internal ID, Unicode name, provisional optional phone and optional NIC/passport, with PostgreSQL uniqueness on a generated normalized identity. A/C review, DEC02 confirmation and real PostgreSQL proof remain pending.
 - [ ] **TASK-PAT-02 (PAT-01–02) — Implement registration, search, and demographic updates.** Search by internal ID, name, supplied identity, and agreed contact fields. Bound or paginate results. Enforce backend role/record access and write demographic audit events in the same transaction as changes. Handle simultaneous duplicate registrations safely.
 - [ ] **TASK-PAT-03 — Build registration, search, and patient-detail screens.** Show field errors and clear success/failure states; preserve Unicode names. The Sprint 1 exit flow is authorised login → registration → search on the deployed application.
 

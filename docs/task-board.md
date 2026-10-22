@@ -56,7 +56,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 
 | Task | Deliverable | Owner slot | Peer reviewer | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| TASK-PAT-01 | Patient schema and identifier rules | B | C | Pending | — |
+| TASK-PAT-01 | Patient schema and identifier rules | B | C | In progress | `member-b/patient-schema`; provisional migration/validation and PostgreSQL test drafted; A number, C/DEC02 review and DB execution pending |
 | TASK-PAT-02 | Registration, search and audited updates | B | C | Pending | — |
 | TASK-PAT-03 | Registration, search and detail screens | B | C | Pending | — |
 | TASK-CON-01 | Consultation/addendum schema and drafts | B | C | Pending | — |
