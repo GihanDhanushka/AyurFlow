@@ -131,7 +131,10 @@ func TestInvoiceStatusConstants(t *testing.T) {
 
 func TestItoa(t *testing.T) {
 	t.Parallel()
-	tests := []struct{ in int; want string }{
+	tests := []struct {
+		in   int
+		want string
+	}{
 		{0, "0"}, {1, "1"}, {9, "9"}, {10, "10"}, {25, "25"}, {100, "100"},
 	}
 	for _, tt := range tests {
