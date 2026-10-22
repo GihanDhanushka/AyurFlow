@@ -46,7 +46,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 | Task | Deliverable | Owner slot | Peer reviewer | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | TASK-AUTH-01 | Account/role/session schema and Argon2id | A | F | In review | `codex/auth-01-password-seed` (`8277cc7`); Go checks pass; PostgreSQL seed proof and F review pending |
-| TASK-AUTH-02 | Login, logout, expiry, revocation, throttling | A | F | Pending | — |
+| TASK-AUTH-02 | Login, logout, expiry, revocation, throttling | A | F | In review | `codex/auth-02-sessions`; DEC07/PostgreSQL/AT01 evidence pending |
 | TASK-AUTH-03 | Backend role/record checks, cookies and CSRF | A | F | Pending | — |
 | TASK-AUTH-04 | Login, account/role screens and disabling | A with F | F | Pending | — |
 | TASK-AUTH-05 | Transactional audit and restricted retrieval | A | F | Pending | — |

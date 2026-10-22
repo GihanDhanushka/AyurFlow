@@ -22,7 +22,7 @@ type APIError struct {
 	Message string `json:"message"`
 }
 
-func NewRouter(db DatabaseChecker) *gin.Engine {
+func NewRouter(db DatabaseChecker, authRoutes ...AuthRoutes) *gin.Engine {
 	router := gin.New()
 	// Recovery must not print request headers, cookies or clinical payloads.
 	router.Use(gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, _ any) {
@@ -44,6 +44,9 @@ func NewRouter(db DatabaseChecker) *gin.Engine {
 		}
 		c.JSON(http.StatusOK, gin.H{"status": "ready"})
 	})
+	if len(authRoutes) > 0 && authRoutes[0].Service != nil {
+		registerAuth(api, authRoutes[0])
+	}
 	// Register business routes only after authentication, CSRF and record access exist.
 	return router
 }

@@ -10,6 +10,20 @@ permissions:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.11-alpine
+        env:
+          POSTGRES_DB: ayurflow_test
+          POSTGRES_USER: ayurflow_test
+          POSTGRES_PASSWORD: synthetic-ci-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ayurflow_test -d ayurflow_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     defaults:
       run:
         working-directory: backend
@@ -23,6 +37,9 @@ jobs:
       - run: test -z "$(gofmt -l .)"
       - run: go vet ./...
       - run: go test ./...
+      - run: go test -tags=integration -count=1 ./internal/auth
+        env:
+          AUTH_TEST_DATABASE_URL: postgres://ayurflow_test:synthetic-ci-only@127.0.0.1:5432/ayurflow_test?sslmode=disable
       - run: go build ./cmd/api ./cmd/migrate ./cmd/seedstaff
 
   frontend:
