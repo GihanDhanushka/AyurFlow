@@ -28,4 +28,4 @@ Both `000004_audit_integrity.up.sql` and `000004_billing.up.sql` are already mer
 
 Billing routes remain unregistered under AUTH-03. Patient references await PAT-01, DEC04 remains pending, and full AT12/AT13 remain open. The authentication pages remain placeholders with disabled submission; no working signup or login flow is claimed by their build.
 
-Local repair checks: clean npm install, frontend lint/typecheck/build, Go unit tests, vet and integration-test compilation passed. PostgreSQL/race/static-analysis/security results are recorded after the repair branch workflow completes in [testing.md](testing.md).
+Local repair checks: clean npm install, frontend lint/typecheck/build, Go unit tests, vet, builds, static analysis, vulnerability scanning and integration-test compilation passed. [The repair workflow](https://github.com/thimira20011/AyurFlow/actions/runs/39843220759) passed all four jobs, including PostgreSQL/race execution with 28 integration cases and no skipped tests. Detailed evidence and remaining acceptance limits are recorded in [testing.md](testing.md).
