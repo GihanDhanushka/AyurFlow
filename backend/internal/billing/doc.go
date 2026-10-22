@@ -1,5 +1,3 @@
-package billing
-
 // Package billing implements the invoices, receipts, balances and billing
 // reports module (Member E, SRS BIL-01–06, AT12).
 //
