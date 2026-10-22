@@ -10,7 +10,7 @@ The agreed reduced scope excludes public signup, automatic diagnosis, scheduling
 
 ## What exists now
 
-The repo has API process/configuration, a pgx pool, health/readiness, a forward migration runner, identity and throttle migrations, a role catalog, Argon2id credentials, an explicit development-only synthetic staff seed, and optional login/session/logout routes. Auth routes require explicit DEC07 policy values and an HTTPS origin; they are disabled by default. Only health/readiness are in OpenAPI pending auth contract review. There is no protected business endpoint, module workflow, pilot HTTPS deployment or backup/restore system. `docs/testing.md` records local checks, not acceptance results.
+The repo has API process/configuration, a pgx pool, health/readiness, a forward migration runner, identity/throttle/audit-integrity migrations, a role catalog, Argon2id credentials, an explicit development-only synthetic staff seed, and optional login/session/logout routes. The audit package supplies a transactional writer and object-scoped reader requiring an authorization adapter; feature owners must integrate their own audit calls. Auth routes require explicit DEC07 policy values and an HTTPS origin; they are disabled by default. Only health/readiness are in OpenAPI pending auth contract review. There is no protected business endpoint, module workflow, pilot HTTPS deployment or backup/restore system. `docs/testing.md` distinguishes implementation checks from acceptance results.
 
 ## Build sequence and dependencies
 
