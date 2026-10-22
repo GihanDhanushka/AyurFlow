@@ -4,34 +4,18 @@ package patients
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
-	"ayurflow/backend/db"
-
-	"github.com/jackc/pgx/v5/pgxpool"
+	"ayurflow/backend/internal/testutil"
 )
 
-// PATIENT_TEST_DATABASE_URL must point to a disposable PostgreSQL database.
 // This proves that the database, not application prechecks, enforces identity
 // uniqueness and allows patients who have no supplied identity.
 func TestPatientSchemaIntegration(t *testing.T) {
-	url := os.Getenv("PATIENT_TEST_DATABASE_URL")
-	if url == "" {
-		t.Skip("PATIENT_TEST_DATABASE_URL is not set")
-	}
+	pool := testutil.Postgres(t)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	pool, err := pgxpool.New(ctx, url)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer pool.Close()
-	if err := db.Migrate(ctx, pool); err != nil {
-		t.Fatal(err)
-	}
-
 	tx, err := pool.Begin(ctx)
 	if err != nil {
 		t.Fatal(err)
