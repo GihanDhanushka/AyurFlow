@@ -60,7 +60,7 @@ Tasks may be prepared while decisions are pending, but they cannot be marked Don
 
 - [ ] **TASK-SCH-04 — Support C's session-delivery integration.** Agree the clinical-clearance call and the behavior of a session already in progress when a plan is held or cancelled. The assigned therapist may record delivery, but cannot approve a stage or prescribe a plan.
 - [ ] **TASK-SCH-06 — Review C's scheduling tests.** Check AT06–07 cases that touch plan/stage links, clearance, cancellation, and concurrent session start. C owns scheduling and its resource constraints.
-- [ ] **TASK-QA-01/03/04/06 — Supply B's examples and fix B-module integration defects.** Add synthetic patient/clinical cases to the requirements checklist; support the patient-to-receipt walkthrough, audit/access review, clinic UAT, and defect resolution.
+- [ ] **TASK-QA-01/03/04/06 — Supply B's examples and fix B-module integration defects.** B's [synthetic AT02–05 case contribution](qa/member-b-examples.md) and [fixture data](../tests/fixtures/member-b-cases.json) are drafted on `member-b/clinical-test-examples`; F/A review and execution evidence remain pending. Continue supporting the patient-to-receipt walkthrough, audit/access review, clinic UAT, and defect resolution.
 - [ ] **TASK-UI-07 / AT15 — Check B's screens.** Verify Unicode round trip, keyboard focus, labels, validation messages, and 1366 × 768 and 1024 × 768 layouts with F.
 - [ ] **TASK-OPS-03 — Write B-module usage guidance.** Document registration, search, consultation signing/addenda, care-plan decisions, and how staff handle failures; have another member verify the instructions.
 
