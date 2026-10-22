@@ -8,6 +8,18 @@ TASK-AUTH-02 local checks (21 October 2026, Windows): `go test -count=1 ./...`, 
 
 The backend GitHub Actions job now starts a disposable PostgreSQL 17 service and runs the AUTH-02 integration test with synthetic credentials. This checks real migration and session SQL on each push/PR. Local execution is still available with a dedicated disposable database and `AUTH_TEST_DATABASE_URL`; do not point it at a shared or production database. CI results are recorded only after the remote job completes.
 
+AUTH-02 PostgreSQL follow-up: the [workflow for merged PR #12](https://github.com/thimira20011/AyurFlow/actions/runs/39788040138), commit `812a93f`, completed successfully on 22 October 2026. This proves the existing synthetic session lifecycle case against PostgreSQL; it does not close DEC07 or full AT01.
+
+## TASK-AUTH-05 audit mechanism checks (22 October 2026)
+
+- **Scope/version:** AUD-01–02 and shared PAT-02 support on `codex/auth-05-audit`, implementation commit `2831d76`; owner A, reviewer F. This is shared-mechanism evidence, not a complete AT13 result.
+- **Tester/environment:** Codex automation; local Windows/Go checks, plus GitHub Actions Ubuntu/Go 1.27.1/PostgreSQL 17.11 for database/race checks.
+- **Setup:** disposable PostgreSQL with synthetic staff and a generated isolated schema per fixture; migration `000004` is applied through the real migration runner. Synthetic business mutations exist only in test schemas.
+- **Steps:** commit a mutation with its audit event; force an audit INSERT failure; submit invalid metadata after a mutation; roll back a transaction containing a successful audit write; attempt UPDATE/DELETE/TRUNCATE; bypass Go validation with invalid SQL metadata; test scoped pagination, denied objects and disabled accounts.
+- **Expected:** business/audit rows commit together or both roll back; failed audit leaves no committable transaction; stored metadata includes actor/action/object/time/reason and changed-field names; history changes and free-text metadata fail; reads require explicit permission and target access.
+- **Actual:** local `go test -count=1 ./...`, `go vet ./...`, command builds and integration-test compilation passed. The [branch workflow](https://github.com/thimira20011/AyurFlow/actions/runs/39791162419) passed both backend and frontend. Its [backend job logs](https://github.com/thimira20011/AyurFlow/actions/runs/39791162419/job/119867241400) confirm all four PostgreSQL audit cases (`TestWriteAtomicityIntegration`, `TestAuditImmutabilityIntegration`, `TestAuditMetadataConstraintsIntegration`, `TestReaderScopeAndPermissionsIntegration`) ran and passed with `-race`, alongside auth regression tests. The forced audit failure left no business mutation; history mutation and unstructured metadata attempts were rejected; scoped pagination and disabled-account denial passed. Local PostgreSQL and Windows race execution remain unavailable, with the remote Linux job supplying those checks.
+- **Remaining acceptance:** F review, AUTH-03 adapter/HTTP permissions, module-specific mutation/audit calls and direct API checks. AT13 remains Pending.
+
 Scaffold verification on 2 October 2026: Go formatting, vet, tests and both command builds passed; frontend lint, typecheck and production build passed; JSON and YAML syntax checks passed. Docker is not installed on the verification machine, so container startup, SQL execution and restart persistence remain unverified. No AT01-AT17 result is marked passed.
 
 | Test | Scope | Proposed owner | Status |
