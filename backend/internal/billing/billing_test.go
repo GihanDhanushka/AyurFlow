@@ -1,7 +1,7 @@
 package billing
 
 import (
-	"context"
+	"math"
 	"testing"
 )
 
@@ -48,6 +48,16 @@ func TestValidateAddItem(t *testing.T) {
 			req:     AddItemRequest{Description: "Complimentary item", Quantity: 1, UnitPriceMinor: 0},
 			wantErr: false,
 		},
+		{
+			name:    "line total overflow",
+			req:     AddItemRequest{Description: "Synthetic fee", Quantity: 2, UnitPriceMinor: math.MaxInt64},
+			wantErr: true,
+		},
+		{
+			name:    "quantity exceeds PostgreSQL integer",
+			req:     AddItemRequest{Description: "Synthetic fee", Quantity: math.MaxInt32 + 1, UnitPriceMinor: 1},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -68,12 +78,12 @@ func TestValidatePostReceipt(t *testing.T) {
 	}{
 		{
 			name:    "valid cash receipt",
-			req:     PostReceiptRequest{OperationID: "abc123", AmountMinor: 50000, PaymentMethod: "cash"},
+			req:     PostReceiptRequest{OperationID: "ac409193-e3ad-4e96-88e2-b856125b52fe", AmountMinor: 50000, PaymentMethod: "cash"},
 			wantErr: false,
 		},
 		{
 			name:    "valid direct deposit with label",
-			req:     PostReceiptRequest{OperationID: "abc456", AmountMinor: 25000, PaymentMethod: "direct_deposit", Label: "Slip #001"},
+			req:     PostReceiptRequest{OperationID: "ac409193-e3ad-4e96-88e2-b856125b52fe", AmountMinor: 25000, PaymentMethod: "direct_deposit", Label: "Slip #001"},
 			wantErr: false,
 		},
 		{
@@ -83,17 +93,22 @@ func TestValidatePostReceipt(t *testing.T) {
 		},
 		{
 			name:    "zero amount",
-			req:     PostReceiptRequest{OperationID: "abc789", AmountMinor: 0, PaymentMethod: "cash"},
+			req:     PostReceiptRequest{OperationID: "ac409193-e3ad-4e96-88e2-b856125b52fe", AmountMinor: 0, PaymentMethod: "cash"},
 			wantErr: true,
 		},
 		{
 			name:    "negative amount",
-			req:     PostReceiptRequest{OperationID: "abc000", AmountMinor: -100, PaymentMethod: "cash"},
+			req:     PostReceiptRequest{OperationID: "ac409193-e3ad-4e96-88e2-b856125b52fe", AmountMinor: -100, PaymentMethod: "cash"},
 			wantErr: true,
 		},
 		{
 			name:    "invalid payment method",
-			req:     PostReceiptRequest{OperationID: "abc111", AmountMinor: 10000, PaymentMethod: "card"},
+			req:     PostReceiptRequest{OperationID: "ac409193-e3ad-4e96-88e2-b856125b52fe", AmountMinor: 10000, PaymentMethod: "card"},
+			wantErr: true,
+		},
+		{
+			name:    "malformed operation UUID",
+			req:     PostReceiptRequest{OperationID: "abc123", AmountMinor: 100, PaymentMethod: "cash"},
 			wantErr: true,
 		},
 	}
@@ -131,7 +146,10 @@ func TestInvoiceStatusConstants(t *testing.T) {
 
 func TestItoa(t *testing.T) {
 	t.Parallel()
-	tests := []struct{ in int; want string }{
+	tests := []struct {
+		in   int
+		want string
+	}{
 		{0, "0"}, {1, "1"}, {9, "9"}, {10, "10"}, {25, "25"}, {100, "100"},
 	}
 	for _, tt := range tests {
@@ -139,21 +157,4 @@ func TestItoa(t *testing.T) {
 			t.Errorf("itoa(%d) = %q, want %q", tt.in, got, tt.want)
 		}
 	}
-}
-
-// ---------------------------------------------------------------------------
-// Integration test stub (requires BILLING_TEST_DATABASE_URL)
-// Pattern follows internal/auth/session_integration_test.go
-// ---------------------------------------------------------------------------
-
-// billingTestContext is unused until the PostgreSQL integration test runs.
-var _ = context.Background // suppress unused import warning in stub
-
-// TestService_Integration_Stub documents the integration test structure that
-// will be implemented in a follow-up (after PAT-01 patient schema lands).
-// Run with: go test -tags=integration ./internal/billing
-func TestService_Integration_Stub(t *testing.T) {
-	// Skip unless the integration build tag is present and the database URL is set.
-	// Replace with actual integration logic when PAT-01 is integrated.
-	t.Skip("integration test: set BILLING_TEST_DATABASE_URL and build with -tags=integration to run")
 }

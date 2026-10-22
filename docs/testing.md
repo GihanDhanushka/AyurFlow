@@ -42,4 +42,12 @@ Scaffold verification on 2 October 2026: Go formatting, vet, tests and both comm
 | AT16 | Outage re-entry and encrypted isolated restore of four record categories | A/F | Pending |
 | AT17 | Clean startup, migrations, seed, restart persistence, docs and handover | A/F | Pending |
 
-For each result record setup, steps, expected/actual behavior, tester, date, application version, environment and evidence location. Store synthetic fixtures in `tests/fixtures`, PostgreSQL tests in `tests/integration`, and browser scenarios in `tests/e2e`. Record unresolved defects rather than marking them passed.
+For each result record setup, steps, expected/actual behavior, tester, date, application version, environment and evidence location. Go PostgreSQL tests live beside module code as `*_integration_test.go` under the `integration` build tag; CI discovers all packages. Store browser scenarios in `tests/e2e`. Record unresolved defects rather than marking them passed.
+
+## Dev integration repair (23 October 2026)
+
+- **Tasks/scope:** SET-05 CI maintenance; BILL-01 receipt integrity support (BIL-01–06, partial AT12); AUTH-05/AUD-01–02 regression support (partial AT13). Owner A, reviewer F; E/D review for billing changes. Branch `codex/dev-ci-integration-fixes`, based on `dev` at `a9eeb93`.
+- **Tester/environment:** Codex automation, Windows, Go 1.27.3, synthetic fixtures only.
+- **Setup/steps:** restore a consistent frontend lockfile and clean-install it; run frontend lint, generated-route type checking and production build; run Go unit tests, vet, all-package builds, tagged integration compilation and vulnerability scanning. Add real-migration isolation/repeat checks plus changed-payload, concurrent retry/payment, overflow and failed-audit rollback tests against actual billing services.
+- **Expected/actual local:** all listed local checks pass; `govulncheck` reports zero reachable vulnerabilities. PostgreSQL and race execution require the Linux workflow because local PostgreSQL/Docker and a supported Windows race compiler are unavailable. Remote execution result pending the branch workflow.
+- **Limits:** this evidence does not close AT12/AT13, patient FK, AUTH-03, DEC04/07, clinic review or operational release gates. See [review findings](dev-integration-review.md) and [incoming test instructions](ci-and-test-guide.md).

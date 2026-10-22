@@ -50,28 +50,28 @@ const (
 
 // Invoice is a billing record linked to one patient.
 type Invoice struct {
-	ID               string        `json:"id"`
-	PatientID        string        `json:"patientId"`
-	Status           InvoiceStatus `json:"status"`
-	TotalMinor       *int64        `json:"totalMinor,omitempty"` // nil on draft
-	IssuedAt         *time.Time    `json:"issuedAt,omitempty"`
-	IssuedBy         *string       `json:"issuedBy,omitempty"`
-	CreatedAt        time.Time     `json:"createdAt"`
-	UpdatedAt        time.Time     `json:"updatedAt"`
-	Items            []InvoiceItem `json:"items,omitempty"`
+	ID         string        `json:"id"`
+	PatientID  string        `json:"patientId"`
+	Status     InvoiceStatus `json:"status"`
+	TotalMinor *int64        `json:"totalMinor,omitempty"` // nil on draft
+	IssuedAt   *time.Time    `json:"issuedAt,omitempty"`
+	IssuedBy   *string       `json:"issuedBy,omitempty"`
+	CreatedAt  time.Time     `json:"createdAt"`
+	UpdatedAt  time.Time     `json:"updatedAt"`
+	Items      []InvoiceItem `json:"items,omitempty"`
 }
 
 // InvoiceItem is a single line on an invoice.
 // Lines are editable only while the invoice is in draft status.
 // line_total_minor = quantity * unit_price_minor (computed; never stored).
 type InvoiceItem struct {
-	ID              string `json:"id"`
-	InvoiceID       string `json:"invoiceId"`
-	Description     string `json:"description"`
-	Quantity        int    `json:"quantity"`
-	UnitPriceMinor  int64  `json:"unitPriceMinor"`
-	LineTotalMinor  int64  `json:"lineTotalMinor"` // always Quantity * UnitPriceMinor
-	CreatedAt       time.Time `json:"createdAt"`
+	ID             string    `json:"id"`
+	InvoiceID      string    `json:"invoiceId"`
+	Description    string    `json:"description"`
+	Quantity       int       `json:"quantity"`
+	UnitPriceMinor int64     `json:"unitPriceMinor"`
+	LineTotalMinor int64     `json:"lineTotalMinor"` // always Quantity * UnitPriceMinor
+	CreatedAt      time.Time `json:"createdAt"`
 }
 
 // Receipt records a single payment event against an issued invoice.
@@ -89,10 +89,10 @@ type Receipt struct {
 
 // InvoiceBalance is a derived view of an invoice's payment state.
 type InvoiceBalance struct {
-	InvoiceID     string `json:"invoiceId"`
-	TotalMinor    int64  `json:"totalMinor"`
-	PaidMinor     int64  `json:"paidMinor"`
-	OutstandingMinor int64 `json:"outstandingMinor"`
+	InvoiceID        string `json:"invoiceId"`
+	TotalMinor       int64  `json:"totalMinor"`
+	PaidMinor        int64  `json:"paidMinor"`
+	OutstandingMinor int64  `json:"outstandingMinor"`
 }
 
 // ---------------------------------------------------------------------------
