@@ -27,9 +27,9 @@ func NewHandler(svc *Service) *Handler {
 // RegisterRoutes wires all billing routes under the /api/v1 group.
 //
 // AUTH-03 GATE: Do not call this function from the router until:
-//   1. AUTH-03 role/record middleware is in place.
-//   2. CSRF protection is applied to all mutations.
-//   3. The caller passes a validated Session (actorID, roles) to each handler.
+//  1. AUTH-03 role/record middleware is in place.
+//  2. CSRF protection is applied to all mutations.
+//  3. The caller passes a validated Session (actorID, roles) to each handler.
 //
 // The function exists now so that the route shapes are reviewable and so
 // that integration can happen in a single place when AUTH-03 lands.
