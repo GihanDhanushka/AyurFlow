@@ -56,7 +56,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 
 | Task | Deliverable | Owner slot | Peer reviewer | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| TASK-PAT-01 | Patient schema and identifier rules | B | C | Pending | — |
+| TASK-PAT-01 | Patient schema and identifier rules | B | C | In progress | [PR #19](https://github.com/thimira20011/AyurFlow/pull/19); isolated PostgreSQL schema test passed; A number, C/DEC02 review and AT02 integration pending |
 | TASK-PAT-02 | Registration, search and audited updates | B | C | Pending | — |
 | TASK-PAT-03 | Registration, search and detail screens | B | C | Pending | — |
 | TASK-CON-01 | Consultation/addendum schema and drafts | B | C | Pending | — |
@@ -114,7 +114,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 
 | Task | Deliverable | Owner slot | Peer reviewer | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| TASK-QA-01 | Requirement/test checklist and synthetic journey data | F; all owners supply examples | A | Pending | — |
+| TASK-QA-01 | Requirement/test checklist and synthetic journey data | F; all owners supply examples | A | In progress | B's [synthetic AT02–05 examples](qa/member-b-examples.md) on `member-b/clinical-test-examples`; F/A review and other modules pending |
 | TASK-QA-02 | Authorized report navigation | F with D/E; A checks access | A | Pending | — |
 | TASK-QA-03 | Patient-to-receipt walkthrough | F; owners fix modules | A | Pending | — |
 | TASK-QA-04 | Critical audit and permission sweep | A with F | F | Pending | — |

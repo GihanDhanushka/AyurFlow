@@ -4,12 +4,16 @@
 
 Sources: *AyurFlow Team task plan* (1 October 2026), especially pp. 2–5 and 11–14; *AyurFlow SRS* v1.0, especially pp. 4–6, 13, 17–21. See [the implementation plan](implementation-plan.md) for dependencies and release gates.
 
-## Baseline and branch status (22 October 2026)
+## Baseline and branch status (23 October 2026)
 
 - The Go/Gin API, pgx pool, numbered migration runner, `/api/v1/health` and `/api/v1/ready` exist. Next.js has a shared shell and placeholder module pages. Compose and CI/check scripts exist.
-- Migrations `000001`–`000003` provide identity, roles, sessions, audit storage and throttling. The AUTH-05 branch adds `000004` for audit metadata constraints and append-only protection. Credentials, optional sessions and the audit foundation are implemented; shared role/record authorization and module audit integration remain pending.
+- Migrations `000001`–`000003` provide identity, roles, sessions, audit storage and throttling. AUTH-05 is merged through PR #13; `000004_audit_integrity` provides audit constraints and append-only protection. Billing also merged `000004_billing`; preserve both filenames. Shared role/record authorization remains pending.
 - OpenAPI documents only health/readiness. An explicit development-only synthetic staff seed exists. Business routes, HTTPS pilot deployment, backup automation and restore evidence remain pending.
-- `TASK-SET-05` is **in progress**: each member must still demonstrate local startup. AUTH-01 and AUTH-02 are merged; AUTH-05 is on its review branch. Later auth tasks, pilot operations and full AT01–AT17 acceptance remain pending.
+- `TASK-SET-05` is **in progress**: each member must still demonstrate local startup. AUTH-01, AUTH-02 and AUTH-05 are merged. Later auth tasks, pilot operations and full AT01–AT17 acceptance remain pending.
+
+### TASK-SET-05 CI repair slice
+
+- [x] Repair merged build/lockfile defects, receipt retry/concurrency/overflow defects, and shared audit integration on `codex/dev-ci-integration-fixes`. Add automatic discovery of incoming module tests, isolated PostgreSQL fixtures, migration regressions, skipped-test rejection, static analysis and vulnerability scanning. Upgrade Go and affected dependencies. Local checks passed; remote results are recorded in [testing.md](testing.md). Owner A; reviewer F, with E/D review for billing behavior. Full SET-05 and AT acceptance remain open.
 
 ## Weeks 1–2: contracts and first deployed flow
 
