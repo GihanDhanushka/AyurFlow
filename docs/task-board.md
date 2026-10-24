@@ -57,7 +57,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 | Task | Deliverable | Owner slot | Peer reviewer | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | TASK-PAT-01 | Patient schema and identifier rules | B | C | In progress | [PR #19](https://github.com/thimira20011/AyurFlow/pull/19); isolated PostgreSQL schema test passed; A number, C/DEC02 review and AT02 integration pending |
-| TASK-PAT-02 | Registration, search and audited updates | B | C | Pending | — |
+| TASK-PAT-02 | Registration, search and audited updates | B | C | In progress | `member-b/registration-search`; service/repository and PostgreSQL integration test drafted; AUTH-03/CSRF, DEC02, C review and AT02 integration pending |
 | TASK-PAT-03 | Registration, search and detail screens | B | C | Pending | — |
 | TASK-CON-01 | Consultation/addendum schema and drafts | B | C | Pending | — |
 | TASK-CON-02 | Signing, immutable text and dated addenda | B | C | Pending | — |

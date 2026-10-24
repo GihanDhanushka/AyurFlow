@@ -7,7 +7,7 @@ import (
 )
 
 // These checks implement the provisional synthetic-development rule in DEC02.
-// Registration remains unavailable until auth, record access and audit work.
+// HTTP registration remains unavailable until shared auth and CSRF work.
 var ErrInvalidPatient = errors.New("patients: invalid patient fields")
 
 type IdentityInput struct {
@@ -24,21 +24,35 @@ type RegistrationInput struct {
 // ValidateRegistration validates the smallest provisional patient record.
 // Clinical review may add fields or revise identity equivalence before AT02.
 func ValidateRegistration(input RegistrationInput) error {
-	if !utf8.ValidString(input.DisplayName) || strings.TrimSpace(input.DisplayName) == "" {
+	if !validName(input.DisplayName) {
 		return ErrInvalidPatient
 	}
-	if input.Phone != nil && (!utf8.ValidString(*input.Phone) || strings.TrimSpace(*input.Phone) == "") {
+	if input.Phone != nil && !validPhone(*input.Phone) {
 		return ErrInvalidPatient
 	}
 	if input.Identity != nil {
-		if input.Identity.Type != "NIC" && input.Identity.Type != "PASSPORT" {
+		if !validIdentity(*input.Identity) {
 			return ErrInvalidPatient
-		}
-		if _, err := CanonicalIdentity(input.Identity.Value); err != nil {
-			return err
 		}
 	}
 	return nil
+}
+
+// The limits are provisional transport safety bounds, not DEC02 clinic rules.
+func validName(value string) bool {
+	return utf8.ValidString(value) && len(value) <= 512 && strings.TrimSpace(value) != ""
+}
+
+func validPhone(value string) bool {
+	return utf8.ValidString(value) && len(value) <= 64 && strings.TrimSpace(value) != ""
+}
+
+func validIdentity(value IdentityInput) bool {
+	if (value.Type != "NIC" && value.Type != "PASSPORT") || len(value.Value) > 128 {
+		return false
+	}
+	_, err := CanonicalIdentity(value.Value)
+	return err == nil
 }
 
 // CanonicalIdentity matches patient_identities.canonical_value in migration 000005.
