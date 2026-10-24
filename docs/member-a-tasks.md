@@ -13,6 +13,8 @@ Sources: *AyurFlow Team task plan* (1 October 2026), especially pp. 2–5 and 11
 
 ### TASK-SET-05 CI repair slice
 
+- [x] **Toolchain consistency (24 October):** pin Node 22.23.2/npm 10.9.8, enforce install engines, align CI/Docker, add a version-manager file and lockfile recovery instructions on `codex/frontend-toolchain-consistency`. Owner A; reviewer F. This is SET-05 setup maintenance, with no business/SRS behavior change. Verification is recorded in [testing.md](testing.md); full SET-05 acceptance remains open.
+
 - [x] Repair merged build/lockfile defects, receipt retry/concurrency/overflow defects, and shared audit integration on `codex/dev-ci-integration-fixes`. Add automatic discovery of incoming module tests, isolated PostgreSQL fixtures, migration regressions, skipped-test rejection, static analysis and vulnerability scanning. Upgrade Go and affected dependencies. Local checks passed; remote results are recorded in [testing.md](testing.md). Owner A; reviewer F, with E/D review for billing behavior. Full SET-05 and AT acceptance remain open.
 
 ## Weeks 1–2: contracts and first deployed flow
