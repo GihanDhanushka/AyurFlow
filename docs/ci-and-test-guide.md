@@ -59,6 +59,31 @@ Browser tests should accompany functional screens once their real backend paths 
 
 ## Local commands
 
+### Frontend toolchain and lockfile recovery
+
+Use Node **22.23.2** and npm **10.9.8**, matching the passing CI baseline. `.nvmrc` supports Node version managers; npm `engines` plus `frontend/.npmrc` reject incompatible install environments. `packageManager` records npm but does not install it automatically. CI explicitly installs and verifies npm before `npm ci`. Docker installs the same npm and copies `.npmrc` into its dependency stage.
+
+With nvm-windows, run `nvm install 22.23.2` and `nvm use 22.23.2`; with POSIX nvm, run `nvm install` and `nvm use` from the repository root. Alternatively use your usual installer for that exact Node version. Then:
+
+```powershell
+node --version
+npm install --global npm@10.9.8
+npm --version
+Set-Location frontend
+npm ci
+npm run lint
+npm run typecheck
+npm run build
+```
+
+For `EBADENGINE`, switch to the selected toolchain; do not disable strict checking or use `--force`. Missing lockfile entries (`EUSAGE`) require a dependency-graph repair. A Node/npm mismatch is a possible cause, not proof of how the file changed.
+
+For a feature with no dependency changes, preserve local work, update from `dev`, and review the dependency-file diff. Restore `frontend/package.json` and `frontend/package-lock.json` from `origin/dev` only after confirming neither contains intentional changes. Run the clean install and checks above, then commit the repair.
+
+For intentional dependency changes, run `npm install` using the pinned toolchain, review and commit both dependency files, and verify with `npm ci`. Keep `npm ci` in CI; it must not silently repair the graph. Do not hand-edit transitive entries. Local version settings can be overridden, so required CI and review remain necessary.
+
+For a toolchain upgrade, update `.nvmrc`, package/lock engine metadata, `packageManager`, workflow npm version, Docker Node/npm versions and this guide together. Verify clean installation on Linux CI. `scripts/check.ps1` now clean-installs frontend dependencies before its checks.
+
 From `backend`: `go test ./...`, `go vet ./...`, `go build ./...`; with a disposable `TEST_DATABASE_URL`, run `go test -tags=integration -shuffle=on -count=1 ./...`. On a supported C toolchain add `-race`; the Windows toolchain on the original verification machine cannot build 64-bit cgo, so Linux CI supplies that check.
 
 From `frontend`: use `npm ci` before lint/typecheck/build to detect lockfile problems. Use the Node version pinned in the workflow. `scripts/check.ps1` runs local checks and database tests when `TEST_DATABASE_URL` is configured.
