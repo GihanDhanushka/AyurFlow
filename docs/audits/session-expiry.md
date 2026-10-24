@@ -19,7 +19,8 @@ Tester: Codex automation; local Windows/Go 1.27.3; synthetic fixtures only.
 - Added `TestLoginClockAfterDatabaseWaitIntegration`: a blocked throttle row becomes eligible while waiting; successful login must use the fresh time. A query tracer advances the clock after credential retrieval, so new session timestamps must also reflect work after the initial throttle check. Empty role lists must remain non-nil for login and authentication.
 - No arbitrary expiry sleeps: lock-state observation controls release; polling is bounded by a 15-second context and all workers are joined.
 - Before applying the fix, the focused database tests compiled but skipped because no disposable `TEST_DATABASE_URL` was configured. Therefore local red-before-fix execution is **not claimed**. Linux CI must run these cases against PostgreSQL and with race detection.
-- Local checks after the fix: focused auth/HTTP unit tests, vet, all-package build and tagged integration compilation passed. Actual PostgreSQL/race result is pending the root review/branch workflow; record it before treating the regression as proven remotely.
+- Local checks after the fix: focused auth/HTTP unit tests, vet, all-package build and tagged integration compilation passed. gopls semantic diagnostics were clean.
+- Remote result: implementation `48dc075`, [workflow 40108342788](https://github.com/thimira20011/AyurFlow/actions/runs/40108342788), Ubuntu/Go 1.27.3/PostgreSQL 17.11. All four jobs passed. The [integration job](https://github.com/thimira20011/AyurFlow/actions/runs/40108342788/job/120914621823) ran 70 integration cases including subtests with race detection and no skips. All eight held-lock expiry cases and both Login clock cases passed, alongside existing authorization/audit/patient/billing regressions.
 
 ## Limits and handoff
 
