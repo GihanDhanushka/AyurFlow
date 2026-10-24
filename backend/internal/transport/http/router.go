@@ -28,6 +28,7 @@ func NewRouter(db DatabaseChecker, authRoutes ...AuthRoutes) *gin.Engine {
 	router.Use(gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, _ any) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, failure("internal_error", "The request could not be completed."))
 	}))
+	router.Use(requestDeadline(requestTimeout))
 	router.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, failure("not_found", "The requested resource was not found."))
 	})
