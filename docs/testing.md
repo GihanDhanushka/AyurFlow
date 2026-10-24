@@ -1,5 +1,11 @@
 # Verification plan and evidence
 
+## TASK-SET-05 frontend toolchain consistency (24 October 2026)
+
+Owner A, reviewer F; branch `codex/frontend-toolchain-consistency`, based on `dev` at `7c9fb4f`. Shared setup maintenance; no business requirement change or AT acceptance claim. Node/npm drift is a possible lockfile cause, not a proven attribution to a contributor.
+
+Verification by Codex automation on Windows: strict engine checking rejected an actual install using Node 22.23.2/npm 11.4.1 with `EBADENGINE`, showing the required versions. The global npm installation was left unchanged; a temporary npm 10.9.8 invocation successfully clean-installed 364 packages without dependency graph changes. Lint, generated-route type checking and production build passed. The first sandboxed build could not fetch the existing Google font; the network-enabled rerun passed. CI verifies exact Node/npm versions and `engine-strict`, then clean-installs and runs lint/typecheck/build. Docker's dependency stage uses the same settings; Docker execution remains unavailable locally. Workflow result pending the feature branch run.
+
 Starter automated checks cover Go build/vet, health-vs-readiness behavior, frontend ESLint, TypeScript and production build. These are foundation checks, not pilot acceptance.
 
 TASK-PAT-01 schema check (23 October 2026, GitHub Actions Ubuntu, Go 1.27.3, PostgreSQL 17.11, commit `85cb592`): [PR #19 integration job](https://github.com/thimira20011/AyurFlow/actions/runs/39854613605/job/120089445640) passed. The log shows `TestPatientSchemaIntegration` passed in 0.47 seconds using an isolated migrated PostgreSQL schema. It verified two patients without supplied identity, a Sinhala name round trip, canonical NIC equivalence and uniqueness, and a distinct passport namespace. Backend, frontend and security jobs also passed on PR #19. This is migration/constraint evidence, **not AT02 acceptance**: registration/search APIs, the duplicate-request race, role/record restrictions, audit, C review and DEC02 are still pending. Local `./scripts/check.ps1` could not start because Go is not installed in this workspace.
