@@ -4,11 +4,46 @@ import (
 	"context"
 	"crypto/subtle"
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 )
 
 var ErrCSRF = errors.New("invalid csrf token")
+
+type lockedSession struct {
+	Session
+	csrfHash  []byte
+	checkedAt time.Time
+}
+
+// Sample expiry time after database waits, while the session/account locks are held.
+func (s *Service) lockSession(ctx context.Context, tx pgx.Tx, hash [32]byte) (lockedSession, error) {
+	var state lockedSession
+	var lastSeen time.Time
+	err := tx.QueryRow(ctx, `SELECT staff.id::text, sess.expires_at, sess.csrf_token_hash, sess.last_seen_at
+		FROM staff_sessions sess JOIN staff_accounts staff ON staff.id=sess.staff_id
+		WHERE sess.token_hash=$1 AND staff.active AND sess.revoked_at IS NULL
+		FOR UPDATE OF sess FOR SHARE OF staff`, hash[:]).Scan(
+		&state.StaffID,
+		&state.ExpiresAt,
+		&state.csrfHash,
+		&lastSeen,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return lockedSession{}, ErrSession
+	}
+	if err != nil {
+		return lockedSession{}, err
+	}
+	state.checkedAt = s.clock().UTC()
+	absoluteExpired := !state.checkedAt.Before(state.ExpiresAt)
+	idleExpired := !state.checkedAt.Before(lastSeen.Add(s.policy.IdleTimeout))
+	if absoluteExpired || idleExpired {
+		return lockedSession{}, ErrSession
+	}
+	return state, nil
+}
 
 // Authenticate validates a protected read without rotating the CSRF token.
 func (s *Service) Authenticate(ctx context.Context, token string) (Session, error) {
@@ -28,25 +63,14 @@ func (s *Service) authenticate(ctx context.Context, token, csrf string, requireC
 	}
 	var session Session
 	err := pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
-		now := s.clock().UTC()
-		var storedCSRF []byte
-		err := tx.QueryRow(ctx, `SELECT staff.id::text, sess.expires_at, sess.csrf_token_hash
-			FROM staff_sessions sess JOIN staff_accounts staff ON staff.id=sess.staff_id
-			WHERE sess.token_hash=$1 AND staff.active AND sess.revoked_at IS NULL
-			AND sess.expires_at > $2
-			AND sess.last_seen_at > $2 - $3::bigint * interval '1 microsecond'
-			FOR UPDATE OF sess FOR SHARE OF staff`,
-			hash[:], now, s.policy.IdleTimeout.Microseconds(),
-		).Scan(&session.StaffID, &session.ExpiresAt, &storedCSRF)
-		if errors.Is(err, pgx.ErrNoRows) {
-			return ErrSession
-		}
+		state, err := s.lockSession(ctx, tx, hash)
 		if err != nil {
 			return err
 		}
+		session = state.Session
 		if requireCSRF {
 			provided, valid := secretHash(csrf)
-			if !valid || subtle.ConstantTimeCompare(provided[:], storedCSRF) != 1 {
+			if !valid || subtle.ConstantTimeCompare(provided[:], state.csrfHash) != 1 {
 				return ErrCSRF
 			}
 		}
@@ -58,7 +82,7 @@ func (s *Service) authenticate(ctx context.Context, token, csrf string, requireC
 		if err != nil {
 			return err
 		}
-		_, err = tx.Exec(ctx, `UPDATE staff_sessions SET last_seen_at=$2 WHERE token_hash=$1`, hash[:], now)
+		_, err = tx.Exec(ctx, `UPDATE staff_sessions SET last_seen_at=$2 WHERE token_hash=$1`, hash[:], state.checkedAt)
 		return err
 	})
 	if err != nil {
