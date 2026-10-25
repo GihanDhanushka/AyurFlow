@@ -26,7 +26,7 @@ Push-Location (Join-Path $projectRoot 'frontend')
 try {
     & npm.cmd ci --no-audit --no-fund
     if ($LASTEXITCODE -ne 0) { throw 'Frontend clean install failed. Match the Node/npm versions in frontend/package.json and repair the lockfile if needed.' }
-    foreach ($check in @('lint', 'typecheck', 'build')) {
+    foreach ($check in @('lint', 'test', 'typecheck', 'build')) {
         & npm.cmd run $check
         if ($LASTEXITCODE -ne 0) { throw "Frontend $check failed." }
     }

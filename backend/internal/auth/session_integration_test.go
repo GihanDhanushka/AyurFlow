@@ -62,7 +62,7 @@ func TestSessionLifecycleIntegration(t *testing.T) {
 	if err != nil || session.CSRFToken == "" {
 		t.Fatalf("valid session: %v", err)
 	}
-	if err := service.Logout(ctx, token, "wrong"); !errors.Is(err, ErrSession) {
+	if err := service.Logout(ctx, token, "wrong"); !errors.Is(err, ErrCSRF) {
 		t.Fatalf("wrong CSRF: %v", err)
 	}
 	if err := service.Logout(ctx, token, session.CSRFToken); err != nil {

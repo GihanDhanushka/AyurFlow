@@ -120,4 +120,10 @@ func TestLogoutRequiresCSRF(t *testing.T) {
 	if response.Code != http.StatusServiceUnavailable || strings.Contains(response.Body.String(), "private") {
 		t.Fatalf("database detail leaked: %d %s", response.Code, response.Body.String())
 	}
+	service.logoutError = auth.ErrCSRF
+	response = httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+	if response.Code != http.StatusForbidden || response.Header().Get("Set-Cookie") != "" {
+		t.Fatal("CSRF rejection must not clear a valid session cookie or claim successful logout")
+	}
 }

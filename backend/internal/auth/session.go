@@ -215,7 +215,7 @@ func (s *Service) Logout(ctx context.Context, token, csrf string) error {
 	}
 	csrfHash, ok := secretHash(csrf)
 	if !ok {
-		return ErrSession
+		return ErrCSRF
 	}
 	return pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
 		state, err := s.lockSession(ctx, tx, tokenHash)
@@ -223,7 +223,7 @@ func (s *Service) Logout(ctx context.Context, token, csrf string) error {
 			return err
 		}
 		if subtle.ConstantTimeCompare(csrfHash[:], state.csrfHash) != 1 {
-			return ErrSession
+			return ErrCSRF
 		}
 		_, err = tx.Exec(ctx, `UPDATE staff_sessions SET revoked_at=$2 WHERE token_hash=$1`, tokenHash[:], state.checkedAt)
 		return err
