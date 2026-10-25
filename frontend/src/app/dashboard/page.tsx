@@ -198,30 +198,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Module Navigation Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin text-xs font-semibold">
-        {[
-          { name: "Dashboard", href: "/dashboard", active: true },
-          { name: "Patient Records", href: "/patients" },
-          { name: "Clinical Pathway", href: "/clinical" },
-          { name: "Scheduling", href: "/scheduling" },
-          { name: "Dispensary", href: "/inventory" },
-          { name: "Invoices & Receipts", href: "/billing" },
-          { name: "Administration", href: "/administration" },
-        ].map((tab) => (
-          <Link
-            key={tab.name}
-            href={tab.href}
-            className={`px-3.5 py-2 rounded-xl transition-all whitespace-nowrap ${
-              tab.active
-                ? "bg-[#183a2d] text-white shadow-xs"
-                : "bg-white text-slate-700 hover:text-emerald-900 hover:bg-emerald-50/80 border border-green-900/10"
-            }`}
-          >
-            {tab.name}
-          </Link>
-        ))}
-      </div>
 
       {/* ── Top Hero Banner (Botanical Theme from Auth) ── */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0c1f16] via-[#122e21] to-[#183a2d] text-white p-6 sm:p-8 shadow-xl border border-emerald-900/40">
