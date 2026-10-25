@@ -9,6 +9,22 @@
   width: 100%;
 }
 
+.previewNotice {
+  align-items: flex-start;
+  background: oklch(0.94 0.03 85);
+  border: 1px solid oklch(0.8 0.06 85);
+  border-radius: 9px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 1rem;
+  line-height: 1.4;
+  margin-bottom: 1.5rem;
+  padding: 0.85rem 1rem;
+}
+
+.previewNotice strong { white-space: nowrap; }
+.previewNotice span { flex: 1 1 25rem; }
+
 .headingRow,
 .sectionHeading,
 .formActions,

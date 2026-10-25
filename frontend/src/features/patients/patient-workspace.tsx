@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { APIRequestError } from "@/lib/api-client";
 import {
@@ -28,6 +28,10 @@ type FormValues = {
 
 const emptyForm: FormValues = { displayName: "", phone: "", identityType: "", identityValue: "" };
 const byteLength = (value: string) => new TextEncoder().encode(value).length;
+const previewPatients: Patient[] = [
+  { id: "00000000-0000-4000-8000-000000000101", displayName: "Demo Patient One", phone: "+94 77 000 0101", identity: null, version: 1, createdAt: "2026-10-20T09:00:00Z", updatedAt: "2026-10-20T09:00:00Z" },
+  { id: "00000000-0000-4000-8000-000000000102", displayName: "Demo Patient Two", phone: null, identity: { type: "PASSPORT", value: "DEMO-ONLY-02" }, version: 2, createdAt: "2026-10-21T10:30:00Z", updatedAt: "2026-10-22T06:15:00Z" },
+];
 
 function formFromPatient(patient: Patient): FormValues {
   return {
@@ -87,12 +91,13 @@ function requestNotice(error: unknown, action: "search" | "create" | "read" | "u
   };
 }
 
-export default function PatientWorkspace() {
-  const [access, setAccess] = useState<Access>("checking");
-  const [query, setQuery] = useState("");
-  const [searched, setSearched] = useState(false);
-  const [results, setResults] = useState<Patient[]>([]);
-  const [selected, setSelected] = useState<Patient | null>(null);
+export default function PatientWorkspace({ preview = false }: { preview?: boolean }) {
+  const previewStore = useRef<Patient[]>(previewPatients.map((patient) => ({ ...patient })));
+  const [access, setAccess] = useState<Access>(preview ? "ready" : "checking");
+  const [query, setQuery] = useState(preview ? "Demo" : "");
+  const [searched, setSearched] = useState(preview);
+  const [results, setResults] = useState<Patient[]>(preview ? previewPatients : []);
+  const [selected, setSelected] = useState<Patient | null>(preview ? previewPatients[0] : null);
   const [panel, setPanel] = useState<"detail" | "register">("detail");
   const [editing, setEditing] = useState(false);
   const [registerForm, setRegisterForm] = useState<FormValues>(emptyForm);
@@ -102,6 +107,7 @@ export default function PatientWorkspace() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    if (preview) return;
     let active = true;
     getReceptionSession().then(
       () => { if (active) setAccess("ready"); },
@@ -113,7 +119,7 @@ export default function PatientWorkspace() {
       },
     );
     return () => { active = false; };
-  }, []);
+  }, [preview]);
 
   function showRegister() {
     setPanel("register");
@@ -138,7 +144,9 @@ export default function PatientWorkspace() {
     setBusy(true);
     setNotice(null);
     try {
-      const items = await searchPatients(term);
+      const items = preview
+        ? previewStore.current.filter((patient) => [patient.id, patient.displayName, patient.phone ?? "", patient.identity?.value ?? ""].some((value) => value.toLocaleLowerCase().includes(term.toLocaleLowerCase()))).slice(0, 25)
+        : await searchPatients(term);
       setResults(items);
       setSearched(true);
       setSelected(null);
@@ -155,7 +163,8 @@ export default function PatientWorkspace() {
     setBusy(true);
     setNotice(null);
     try {
-      const patient = await getPatient(id);
+      const patient = preview ? previewStore.current.find((item) => item.id === id) : await getPatient(id);
+      if (!patient) throw new APIRequestError(404, "not_found", "Patient not found.");
       setSelected(patient);
       setEditForm(formFromPatient(patient));
       setEditing(false);
@@ -180,7 +189,11 @@ export default function PatientWorkspace() {
     setBusy(true);
     setNotice(null);
     try {
-      const patient = await registerPatient(input);
+      const patient = preview ? {
+        id: crypto.randomUUID(), ...input, version: 1,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+      } : await registerPatient(input);
+      if (preview) previewStore.current.unshift(patient);
       setSelected(patient);
       setResults([patient]);
       setSearched(false);
@@ -218,7 +231,10 @@ export default function PatientWorkspace() {
     setBusy(true);
     setNotice(null);
     try {
-      const patient = await updatePatient(selected.id, changes);
+      const patient = preview ? {
+        ...selected, ...changes, version: selected.version + 1, updatedAt: new Date().toISOString(),
+      } : await updatePatient(selected.id, changes);
+      if (preview) previewStore.current = previewStore.current.map((item) => item.id === patient.id ? patient : item);
       setSelected(patient);
       setResults((previous) => previous.map((item) => item.id === patient.id ? patient : item));
       setEditForm(formFromPatient(patient));
@@ -238,6 +254,7 @@ export default function PatientWorkspace() {
 
   return (
     <div className={styles.workspace}>
+      {preview && <div className={styles.previewNotice} role="status"><strong>Synthetic screen preview</strong><span>Try search, registration and edits here. Changes stay in this browser tab and disappear on refresh. No patient API or database is used.</span><Link href="/patients" className={styles.textLink}>Return to live records</Link></div>}
       <div className={styles.headingRow}>
         <div>
           <p className={styles.kicker}>Patient registry</p>
@@ -256,6 +273,7 @@ export default function PatientWorkspace() {
           <h2>{access === "checking" ? "Checking access" : access === "signin" ? "Sign in required" : access === "forbidden" ? "Access unavailable" : "Patient records unavailable"}</h2>
           <p>{access === "checking" ? "Checking your staff session…" : access === "signin" ? "A staff session is required to use patient records." : access === "forbidden" ? "This account does not have reception access to patient demographics." : "The patient service or staff session could not be reached. Try again after it is configured."}</p>
           {access === "signin" && <Link href="/sign-in" className={styles.textLink}>Go to staff sign in</Link>}
+          {process.env.NODE_ENV === "development" && access !== "checking" && <p><Link href="/patients/preview" className={styles.textLink}>Preview the patient screens with synthetic data</Link></p>}
         </div>
       ) : (
         <>

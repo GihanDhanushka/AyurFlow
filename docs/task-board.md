@@ -58,7 +58,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 | --- | --- | --- | --- | --- | --- |
 | TASK-PAT-01 | Patient schema and identifier rules | B | C | In progress | [PR #19](https://github.com/thimira20011/AyurFlow/pull/19); isolated PostgreSQL schema test passed; A number, C/DEC02 review and AT02 integration pending |
 | TASK-PAT-02 | Registration, search and audited updates | B | C | In progress | [PR #22](https://github.com/thimira20011/AyurFlow/pull/22); [PostgreSQL CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40089021544); AUTH-03/CSRF, DEC02, C review and AT02 integration pending |
-| TASK-PAT-03 | Registration, search and detail screens | B | C | In progress | `member-b/patient-screens`; [CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40177536481); shared sign-in/UI, DEC02/07, C review and AT02 journey pending |
+| TASK-PAT-03 | Registration, search and detail screens | B | C | In progress | `member-b/patient-screens`; development-only synthetic screen preview added for review; [original screen CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40177536481); shared sign-in/UI, DEC02/07, C review and AT02 journey pending |
 | TASK-CON-01 | Consultation/addendum schema and drafts | B | C | Pending | — |
 | TASK-CON-02 | Signing, immutable text and dated addenda | B | C | Pending | — |
 | TASK-CON-03 | Consultation editor, sign and history UI | B | C | Pending | — |

@@ -1,5 +1,7 @@
 # Verification plan and evidence
 
+TASK-PAT-03 synthetic preview check (25 October 2026; Windows, Node 22.23.2/npm 10.9.8, `member-b/patient-screens`): Setup: run `npm ci` and `npm run dev`, with auth still disabled. Steps: run `npm run lint` and `npm run typecheck`; request `/patients` and `/patients/preview`. Expected: the protected page stays gated while the development preview renders labelled synthetic search/detail UI; actual: both routes returned 200, the preview included its synthetic banner, search section and demo detail, and lint/typecheck passed. Tester: Codex local check. The preview uses browser memory and is not AT02, protected API evidence or a production route. C review and the shared sign-in/HTTPS journey remain open.
+
 ## TASK-SET-05 frontend toolchain consistency (24 October 2026)
 
 Owner A, reviewer F; branch `codex/frontend-toolchain-consistency`, based on `dev` at `7c9fb4f`. Shared setup maintenance; no business requirement change or AT acceptance claim. Node/npm drift is a possible lockfile cause, not a proven attribution to a contributor.
