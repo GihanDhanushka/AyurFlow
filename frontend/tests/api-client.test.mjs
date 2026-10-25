@@ -61,3 +61,15 @@ test("administrator navigation grants no clinical or patient permission", () => 
   assert.equal(canOpenArea("/patients/details", ["receptionist"]), true);
   assert.equal(canOpenArea("/clinical", []), false);
 });
+
+test("role updates use PUT and send only the explicit role payload with session CSRF", async () => {
+  globalThis.fetch = async (url, options) => {
+    if (url.endsWith("/auth/session")) return Response.json({ csrfToken: "fresh-role-token" });
+    assert.equal(url, "/api/v1/admin/staff/synthetic-id/roles");
+    assert.equal(options.method, "PUT");
+    assert.equal(options.headers["X-CSRF-Token"], "fresh-role-token");
+    assert.deepEqual(JSON.parse(options.body), { roles: ["billing"] });
+    return Response.json({ roles: ["billing"] });
+  };
+  await apiMutation("/admin/staff/synthetic-id/roles", { roles: ["billing"] }, "PUT");
+});

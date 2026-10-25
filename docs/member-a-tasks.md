@@ -4,6 +4,27 @@
 
 Sources: *AyurFlow Team task plan* (1 October 2026), especially pp. 2–5 and 11–14; *AyurFlow SRS* v1.0, especially pp. 4–6, 13, 17–21. See [the implementation plan](implementation-plan.md) for dependencies and release gates.
 
+## Current completion summary — 26 October 2026
+
+### Implemented
+
+| Member A work | Implementation state | Review/acceptance still required |
+| --- | --- | --- |
+| AUTH-01 credentials/synthetic seed | Implemented and merged | Seed repeat evidence/F review, full AT01 |
+| AUTH-02 sessions | Implemented and merged, including fresh clock audit fix | DEC07/F review and full AT01 |
+| AUTH-03 shared authorization | Implemented and merged with patient integration | Real module assignment/report/export policies, DEC02/07 and full AT01/13 |
+| AUTH-04 login and staff administration | Implemented on `codex/auth-04-login` then `codex/auth-04-staff` | Review/merge login first, then staff; F/browser/AT01 review, recovery policy pending |
+| AUTH-05 shared audit | Implemented and merged | Each module's critical calls/retrieval permission adapter and full AT13 |
+| Shared CI/toolchain and three audit fixes | Implemented and merged | Ongoing checks with incoming features; not AT acceptance |
+
+### Remaining Member A tasks
+
+- **Next security verification:** AUTH-06 — complete AT01 with role accounts, browser/direct API access, CSRF, expiry/throttling, safe logs and F review.
+- **Deployment and recovery:** OPS-01 HTTPS/restricted credentials; OPS-02 encrypted backups/isolated restore; OPS-03 guides/outage runbook; OPS-04 clean startup/persistence; OPS-05 host/key/support decisions; OPS-06 training/handover.
+- **Integration reviews:** QA-02 report access; QA-04 module audit/permission sweep; QA-05 host/performance support. Owners still integrate their own real record policies and audit calls.
+- **Coordination/evidence:** SET-01 named ownership; SET-04 reviewed API/security conventions; SET-05 every member's startup proof; SET-06 reviewed module schema/API boundaries. The shared setup implementation alone does not complete these coordination tasks.
+- **Gates:** DEC02 clinical permissions/fields, DEC05 real-data authorization, DEC06 operations, DEC07 final security/recovery policy; other owners' DEC03/04/08 choices still affect integration. No pending decision is marked approved by code completion.
+
 ## Baseline and branch status (24 October 2026)
 
 - The Go/Gin API, pgx pool, numbered migration runner, `/api/v1/health` and `/api/v1/ready` exist. Next.js has a shared shell and placeholder module pages. Compose and CI/check scripts exist.
@@ -28,8 +49,9 @@ Sources: *AyurFlow Team task plan* (1 October 2026), especially pp. 2–5 and 11
   - [x] **Session clock audit fix:** `codex/audit-session-expiry` checks expiry after pool/row-lock waits for all session paths and uses fresh login timestamps. Deterministic PostgreSQL regressions are added; local unit/vet/build and integration compilation passed. Real database/race execution and F review remain pending. See [audit inventory and evidence](audits/session-expiry.md).
 - [x] **TASK-AUTH-03 — shared authorization implementation.** On `codex/auth-03-authorization`: session/CSRF middleware, non-rotating protected request validation, current database role/active-account checks in the business transaction, fail-closed record-assignment interface and reception-only patient route integration. The user approved provisional synthetic access rules on 24 October and retained explicit DEC07 configuration. Direct API/database tests cover forbidden requests, clinical admin denial, revocation/expiry, retries of CSRF-protected requests and audit rollback. **Acceptance/handoffs pending:** F review, B/C patient handoff, actual clinical/therapist assignment adapters, module-specific report/export/audit policies, DEC02/07 and complete AT01/AT13. No unimplemented module route is exposed. See [integration instructions](../backend/internal/authorization/README.md) and [evidence](testing.md).
 - [x] **TASK-AUTH-05 — transactional audit foundation.** Implemented on `codex/auth-05-audit`: caller-transaction writer with rollback on failure, bounded structured metadata/changed-field names, append-only PostgreSQL protection and object-scoped reads requiring an explicit authorization adapter. Go tests, vet, builds and [PostgreSQL/race CI](https://github.com/thimira20011/AyurFlow/actions/runs/39791162419) pass. See the [module integration instructions](../backend/internal/audit/README.md) and [verification evidence](testing.md). **Acceptance pending:** F review, AUTH-03 authorization/route integration, each module's audit calls and full AT13. No audit route/UI is exposed before those permission gates.
-- [ ] **TASK-AUTH-04 — account and role UI with F.** Build the login screen for the Sprint 1 flow, then account create/disable and explicit role assignment screens through week 3; coordinate the admin wireframe (`TASK-UI-05`) and shared controls (`TASK-UI-06`). **Done:** authorized administrators can manage accounts; no public signup; disable revokes sessions.
+- [x] **TASK-AUTH-04 — login and staff administration implementation.** Working login/session/logout UI, administrator-only account creation/listing, explicit role assignment, atomic disable/session revocation and audited rollback are implemented on two feature branches. Self-lockout and concurrent administrator changes are protected. **Review/acceptance pending:** merge login then staff, F/browser checks, DEC07 recovery/production policy and full AT01; no public signup or clinical administrator bypass is added.
   - [x] **Login slice (26 October):** working sign-in, session restore/expiry handling, honest logout and role-aware workspace navigation on `codex/auth-04-login`; [implementation/checks](api/auth-04-login.md). Administrator account-management slice and F/AT01 acceptance remain separate.
+  - [x] **Staff slice (26 October):** controlled creation, role catalog/list, role changes and disabling with transaction-scoped permission/audit and session revocation on `codex/auth-04-staff`; [implementation/checks](api/auth-04-staff.md). Both slices still require user PR review/merge and F acceptance evidence.
 - [ ] **TASK-OPS-01 — deploy the first slice.** Extend development Compose into a reviewed pilot configuration with HTTPS reverse proxy, restricted database access, separate application/migration credentials and secrets outside Git. Pair with B/F on the login → patient registration → search demonstration. **Done:** deployed Sprint 1 journey works with permissions; F verifies. Pilot host choices remain under DEC06.
   - [x] **Request lifecycle audit repair:** bound application request contexts to 10 seconds within the 15-second write window; preserve graceful drain, then cancel/close stalled requests before pool cleanup. Implemented on `codex/audit-request-lifecycle`; focused cancellation/shutdown tests pass. [Evidence and limits](audits/request-lifecycle.md). Owner A, reviewer F; full OPS-01/deployment acceptance remains open.
 

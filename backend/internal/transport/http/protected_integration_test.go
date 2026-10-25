@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"ayurflow/backend/internal/administration"
 	"ayurflow/backend/internal/auth"
 	"ayurflow/backend/internal/authorization"
 	"ayurflow/backend/internal/config"
@@ -285,5 +286,123 @@ func TestClinicalRouteBoundaryIntegration(t *testing.T) {
 				t.Fatalf("clinical boundary failed: status=%d", response.Code)
 			}
 		})
+	}
+}
+
+func TestAdministrationRouteBoundaryIntegration(t *testing.T) {
+	f := newProtectedFixture(t)
+	f.router = NewRouter(f.pool, AuthRoutes{Service: f.sessions, AllowedOrigin: protectedOrigin, Administration: administration.NewService(f.pool)})
+	response := protectedRequest(f.router, "GET", "/api/v1/admin/staff", f.token, "", "")
+	if response.Code != 403 {
+		t.Fatalf("non-admin list status=%d", response.Code)
+	}
+	if _, err := f.pool.Exec(t.Context(), `INSERT INTO staff_roles(staff_id,role_code) VALUES($1,'administrator')`, f.actor); err != nil {
+		t.Fatal(err)
+	}
+	const password = "synthetic-initial-password"
+	body := `{"loginIdentifier":"synthetic-managed","password":"` + password + `","roles":["billing"]}`
+	response = protectedRequest(f.router, "POST", "/api/v1/admin/staff", f.token, "", body)
+	if response.Code != 403 {
+		t.Fatal("admin creation bypassed CSRF")
+	}
+	response = protectedRequest(f.router, "POST", "/api/v1/admin/staff", f.token, f.csrf, body)
+	if response.Code != 201 {
+		t.Fatalf("create status=%d body=%s", response.Code, response.Body.String())
+	}
+	if strings.Contains(response.Body.String(), password) || strings.Contains(response.Body.String(), "argon2") {
+		t.Fatal("created response leaked credentials")
+	}
+	var staff administration.Staff
+	if err := json.Unmarshal(response.Body.Bytes(), &staff); err != nil {
+		t.Fatal(err)
+	}
+	response = protectedRequest(f.router, "PUT", "/api/v1/admin/staff/"+staff.ID+"/roles", f.token, f.csrf, `{"roles":["clinician"]}`)
+	if response.Code != 200 {
+		t.Fatalf("roles status=%d body=%s", response.Code, response.Body.String())
+	}
+	response = protectedRequest(f.router, "POST", "/api/v1/admin/staff/"+strings.ToUpper(f.actor)+"/disable", f.token, f.csrf, "")
+	if response.Code != 409 {
+		t.Fatal("self-disable route bypass")
+	}
+	response = protectedRequest(f.router, "POST", "/api/v1/admin/staff/"+staff.ID+"/disable", f.token, f.csrf, "")
+	if response.Code != 204 {
+		t.Fatalf("disable status=%d body=%s", response.Code, response.Body.String())
+	}
+	response = protectedRequest(f.router, "GET", "/api/v1/admin/staff", f.token, "", "")
+	if response.Code != 200 || strings.Contains(response.Body.String(), password) || strings.Contains(response.Body.String(), "argon2") {
+		t.Fatal("unsafe staff list")
+	}
+}
+
+func TestDisableAndAuthenticationLockOrderIntegration(t *testing.T) {
+	f := newProtectedFixture(t)
+	ctx, cancel := context.WithTimeout(t.Context(), 15*time.Second)
+	defer cancel()
+	var otherAdmin string
+	err := f.pool.QueryRow(ctx, `INSERT INTO staff_accounts(login_identifier,password_hash) VALUES('synthetic-disable-owner','$argon2id$synthetic-fixture') RETURNING id::text`).Scan(&otherAdmin)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.pool.Exec(ctx, `INSERT INTO staff_roles(staff_id,role_code) VALUES($1,'administrator')`, otherAdmin); err != nil {
+		t.Fatal(err)
+	}
+	blocker, err := f.pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer blocker.Rollback(ctx)
+	if _, err := blocker.Exec(ctx, `SELECT id FROM staff_sessions FOR UPDATE`); err != nil {
+		t.Fatal(err)
+	}
+	results := make(chan error, 2)
+	var workers sync.WaitGroup
+	defer func() { cancel(); workers.Wait() }()
+	workers.Add(1)
+	go func() { defer workers.Done(); _, err := f.sessions.Authenticate(ctx, f.token); results <- err }()
+	authPID := waitForBlockingPID(t, ctx, f.pool, blocker.Conn().PgConn().PID())
+	workers.Add(1)
+	go func() {
+		defer workers.Done()
+		results <- administration.NewService(f.pool).Disable(ctx, otherAdmin, f.actor)
+	}()
+	// Disable must wait on authentication's account lock, not hold the account
+	// while waiting for the session row already requested by authentication.
+	waitForBlockingPID(t, ctx, f.pool, authPID)
+	if err := blocker.Rollback(ctx); err != nil {
+		t.Fatal(err)
+	}
+	for range 2 {
+		select {
+		case err := <-results:
+			if err != nil {
+				t.Fatal(err)
+			}
+		case <-ctx.Done():
+			t.Fatal("disable/authentication deadlocked")
+		}
+	}
+	if _, err := f.sessions.Authenticate(ctx, f.token); err != auth.ErrSession {
+		t.Fatalf("disabled account retained session: %v", err)
+	}
+}
+
+func waitForBlockingPID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, blocker uint32) uint32 {
+	t.Helper()
+	ticker := time.NewTicker(5 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		var pid uint32
+		err := pool.QueryRow(ctx, `SELECT pid FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND $1::integer=ANY(pg_blocking_pids(pid)) LIMIT 1`, int64(blocker)).Scan(&pid)
+		if err == nil {
+			return pid
+		}
+		if err != pgx.ErrNoRows {
+			t.Fatal(err)
+		}
+		select {
+		case <-ctx.Done():
+			t.Fatal("expected database lock wait not observed")
+		case <-ticker.C:
+		}
 	}
 }

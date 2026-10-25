@@ -21,10 +21,16 @@ type lockedSession struct {
 func (s *Service) lockSession(ctx context.Context, tx pgx.Tx, hash [32]byte) (lockedSession, error) {
 	var state lockedSession
 	var lastSeen time.Time
-	err := tx.QueryRow(ctx, `SELECT staff.id::text, sess.expires_at, sess.csrf_token_hash, sess.last_seen_at
-		FROM staff_sessions sess JOIN staff_accounts staff ON staff.id=sess.staff_id
-		WHERE sess.token_hash=$1 AND staff.active AND sess.revoked_at IS NULL
-		FOR UPDATE OF sess FOR SHARE OF staff`, hash[:]).Scan(
+	// Materialization takes the account lock before the session lock, matching disable.
+	err := tx.QueryRow(ctx, `WITH locked_staff AS MATERIALIZED (
+		SELECT staff.id FROM staff_accounts staff
+		JOIN staff_sessions candidate ON candidate.staff_id=staff.id
+		WHERE candidate.token_hash=$1 AND staff.active FOR SHARE OF staff
+	)
+	SELECT staff.id::text, sess.expires_at, sess.csrf_token_hash, sess.last_seen_at
+		FROM locked_staff staff JOIN staff_sessions sess ON staff.id=sess.staff_id
+		WHERE sess.token_hash=$1 AND sess.revoked_at IS NULL
+		FOR UPDATE OF sess`, hash[:]).Scan(
 		&state.StaffID,
 		&state.ExpiresAt,
 		&state.csrfHash,

@@ -22,6 +22,8 @@ Clinical/session checks fail closed with no `RecordAccess` adapter. Owners imple
 
 ## HTTP integration
 
+AUTH-04 staff management uses its own transaction-scoped administrator check in `internal/administration`. It authorizes staff account/role scope only; it does not add an administrator bypass to any policy above. See the AUTH-04 staff contract for self-lockout protection and session revocation.
+
 Every protected route group uses `transport.RequireSession`. It validates the `__Host-ayurflow_session` cookie, rejects duplicate cookies and cross-site fetches, requires exact configured `Origin` plus the session's `X-CSRF-Token` on every unsafe method, sets `Cache-Control: no-store`, and installs only the validated actor. `ActorID(c)` is the only transport identity source. Services must also enforce this package's role/record policy in their transaction.
 
 `auth.Authenticate` and `AuthenticateCSRF` preserve the CSRF token. Bad CSRF does not refresh idle time. `GET /auth/session` remains the explicit CSRF rotation/bootstrap operation; obtain its latest token after session refresh. Coordinate bootstrap across tabs; this slice does not introduce a token grace window. Login and logout retain their existing secure cookie/origin behavior. Missing/expired/revoked/disabled sessions fail; infrastructure errors fail closed with generic responses.
