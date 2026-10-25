@@ -17,7 +17,7 @@ import {
 import styles from "./patient-workspace.module.css";
 
 type Access = "checking" | "ready" | "signin" | "forbidden" | "unavailable";
-type Notice = { tone: "success" | "error" | "info"; text: string };
+type Notice = { tone: "success" | "error" | "info"; text: string; signIn?: boolean };
 type FieldErrors = Partial<Record<"displayName" | "phone" | "identity", string>>;
 type FormValues = {
   displayName: string;
@@ -70,9 +70,21 @@ function errorText(error: unknown, action: "search" | "create" | "read" | "updat
     if (error.status === 409 && action === "create") return "This identity may already be registered. Search for the patient before trying again.";
     if (error.status === 409 && action === "update") return "This record changed since you opened it. Reload it before editing again.";
     if (error.status === 422) return "Check the patient fields and try again.";
+    if (error.status === 503 && action === "create") return "Registration could not be confirmed. Search for this patient before trying again.";
+    if (error.status === 503 && action === "update") return "The update could not be confirmed. Reload the record before trying again.";
     if (error.status === 503) return "Patient records are temporarily unavailable. Try again later.";
   }
+  if (action === "create") return "Registration could not be confirmed. Search for this patient before trying again.";
+  if (action === "update") return "The update could not be confirmed. Reload the record before trying again.";
   return "The request could not be completed. Check your connection and try again.";
+}
+
+function requestNotice(error: unknown, action: "search" | "create" | "read" | "update"): Notice {
+  return {
+    tone: "error",
+    text: errorText(error, action),
+    signIn: error instanceof APIRequestError && error.status === 401,
+  };
 }
 
 export default function PatientWorkspace() {
@@ -133,7 +145,7 @@ export default function PatientWorkspace() {
       setPanel("detail");
       setEditing(false);
     } catch (error) {
-      setNotice({ tone: "error", text: errorText(error, "search") });
+      setNotice(requestNotice(error, "search"));
     } finally {
       setBusy(false);
     }
@@ -149,7 +161,7 @@ export default function PatientWorkspace() {
       setEditing(false);
       setPanel("detail");
     } catch (error) {
-      setNotice({ tone: "error", text: errorText(error, "read") });
+      setNotice(requestNotice(error, "read"));
     } finally {
       setBusy(false);
     }
@@ -178,7 +190,7 @@ export default function PatientWorkspace() {
       setPanel("detail");
       setNotice({ tone: "success", text: "Patient registered. The record is ready to review." });
     } catch (error) {
-      setNotice({ tone: "error", text: errorText(error, "create") });
+      setNotice(requestNotice(error, "create"));
     } finally {
       setBusy(false);
     }
@@ -213,7 +225,7 @@ export default function PatientWorkspace() {
       setEditing(false);
       setNotice({ tone: "success", text: "Demographic changes saved." });
     } catch (error) {
-      setNotice({ tone: "error", text: errorText(error, "update") });
+      setNotice(requestNotice(error, "update"));
     } finally {
       setBusy(false);
     }
@@ -247,7 +259,7 @@ export default function PatientWorkspace() {
         </div>
       ) : (
         <>
-          {notice && <div className={`${styles.notice} ${styles[notice.tone]}`} role={notice.tone === "error" ? "alert" : "status"}>{notice.text}</div>}
+          {notice && <div className={`${styles.notice} ${styles[notice.tone]}`} role={notice.tone === "error" ? "alert" : "status"}>{notice.text}{notice.signIn && <> <Link href="/sign-in" className={styles.textLink}>Staff sign in</Link></>}</div>}
           <div className={styles.columns}>
             <section className={styles.searchPanel} aria-labelledby="patient-search-heading">
               <div className={styles.sectionHeading}>
