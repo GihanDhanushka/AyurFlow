@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import { StaffSessionProvider } from "@/features/administration/session";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,7 +28,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <span className="rounded-full bg-green-50 px-3 py-1 text-sm text-green-900">Initial workspace</span>
           </div>
         </header>
-        <main id="main" className="mx-auto max-w-6xl px-6 py-12">{children}</main>
+        <main id="main" className="mx-auto max-w-6xl px-6 py-12"><StaffSessionProvider>{children}</StaffSessionProvider></main>
       </body>
     </html>
   );
