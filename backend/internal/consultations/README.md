@@ -1,0 +1,7 @@
+# Consultation drafts (TASK-CON-01)
+
+Member B owns this slice; Member C reviews it. SRS CON-01 and AT03 require a consultation draft to exist without a care plan. Migration `000006_consultation_drafts.up.sql` creates draft-only rows linked to patients and staff, with a version for concurrent edits. `Create`, `Get`, and `Update` preserve Unicode note text, reject blank/oversized drafts, lock and version edits, and insert create/update audit metadata in the same transaction. Audit events contain no note body.
+
+Every service call requires a transaction-scoped `AccessPolicy`. A nil policy denies access. The production clinician-to-patient assignment source remains open under DEC02, so no clinical HTTP route is registered and no frontend is wired to these methods yet. A future policy must verify the active clinician role and current patient/consultation assignment in the same transaction, including owner-versus-assigned draft rules, before A's session/CSRF middleware may expose routes. The test policy is synthetic and grants no production access.
+
+CON-02 adds signing, immutable originals and dated addenda with a new forward migration. The current `consultations_draft_only` constraint must be replaced there; do not edit migration 000006 after application. CON-03 owns the editor and history screen. OpenAPI stays unchanged until an endpoint is implemented and reviewed. PostgreSQL integration tests cover draft-without-plan, denied access, a competing edit and audit rollback; they are implementation evidence, not AT03 acceptance.

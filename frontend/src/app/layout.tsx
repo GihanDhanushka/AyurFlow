@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Navbar } from "@/components/navbar";
 import { MainLayout } from "@/components/main-layout";
+import { StaffSessionProvider } from "@/features/administration/session";
 import "./globals.css";
 
 const inter = Inter({
@@ -22,8 +23,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:bg-white focus:p-3 focus:z-50">
           Skip to content
         </a>
-        <Navbar />
-        <MainLayout>{children}</MainLayout>
+        <StaffSessionProvider>
+          <Navbar />
+          <MainLayout>{children}</MainLayout>
+        </StaffSessionProvider>
       </body>
     </html>
   );
