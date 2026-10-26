@@ -99,7 +99,15 @@ func (s *Service) Login(ctx context.Context, identifier, password, previousToken
 	} else {
 		burnPasswordWork(password)
 	}
-	// Password verification can be expensive; never backdate a block or new session.
+	if active && valid {
+		// Account administration locks this row before revoking sessions. Recheck
+		// after password work so disable cannot miss a newly issued valid session.
+		err = tx.QueryRow(ctx, `SELECT active FROM staff_accounts WHERE id=$1 FOR SHARE`, staffID).Scan(&active)
+		if err != nil {
+			return Session{}, "", err
+		}
+	}
+	// Password verification and account locks can wait; never backdate a session.
 	now = s.clock().UTC()
 	if !active || !valid {
 		failures++
@@ -215,7 +223,7 @@ func (s *Service) Logout(ctx context.Context, token, csrf string) error {
 	}
 	csrfHash, ok := secretHash(csrf)
 	if !ok {
-		return ErrSession
+		return ErrCSRF
 	}
 	return pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
 		state, err := s.lockSession(ctx, tx, tokenHash)
@@ -223,7 +231,7 @@ func (s *Service) Logout(ctx context.Context, token, csrf string) error {
 			return err
 		}
 		if subtle.ConstantTimeCompare(csrfHash[:], state.csrfHash) != 1 {
-			return ErrSession
+			return ErrCSRF
 		}
 		_, err = tx.Exec(ctx, `UPDATE staff_sessions SET revoked_at=$2 WHERE token_hash=$1`, tokenHash[:], state.checkedAt)
 		return err

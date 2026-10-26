@@ -21,6 +21,10 @@ Provisional API prefix: `/api/v1`. Error envelope: `{"error":{"code":"not_found"
 
 ## DEC07 review packet
 
+### AUTH-04 synthetic staff workflow (26 October 2026)
+
+The user approved administrator-selected initial passwords of at least 15 characters with explicit roles, no self-disable and no self-removal of administrator access. The existing 1024 UTF-8 byte hashing ceiling remains. Role changes and disabling end target sessions and commit with audit events. Recovery, forced first-password change, production credential policy and team/F review remain pending DEC07. No public signup, reactivation or default credentials are approved. See [the staff review packet](api/auth-04-staff.md). This is synthetic-development authorization, not clinic approval or real-data permission. Existing session/throttling settings remain explicitly configured.
+
 ### AUTH-03 synthetic-development authorization (24 October 2026)
 
 The user (Member A) explicitly approved the provisional access rules for this implementation: reception can register/search/read/edit demographics; clinical access requires a clinician plus explicit patient assignment; therapist access requires a session assignment; administrator alone has no clinical access. Missing assignment adapters deny access. No assignment-management permission, billing projection or generic audit/report/export permission is approved by this decision. See [the implemented review contract](api/auth-03-contract.md) and [authorization module instructions](../backend/internal/authorization/README.md). This is development authorization with synthetic data only, not clinic approval or closure of DEC02/05.
