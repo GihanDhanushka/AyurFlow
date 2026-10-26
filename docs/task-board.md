@@ -60,7 +60,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 | TASK-PAT-02 | Registration, search and audited updates | B | C | In progress | [PR #22](https://github.com/thimira20011/AyurFlow/pull/22); [PostgreSQL CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40089021544); AUTH-03/CSRF, DEC02, C review and AT02 integration pending |
 | TASK-PAT-03 | Registration, search and detail screens | B | C | In progress | [PR #29](https://github.com/thimira20011/AyurFlow/pull/29) merged; development-only synthetic preview; [CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40177536481); shared sign-in/UI, DEC02/07, C review and AT02 journey pending |
 | TASK-CON-01 | Consultation/addendum schema and drafts | B | C | In progress | [PR #32](https://github.com/thimira20011/AyurFlow/pull/32); [CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40267707813); assignment policy, protected HTTP, A migration number, C review and AT03 pending |
-| TASK-CON-02 | Signing, immutable text and dated addenda | B | C | Pending | — |
+| TASK-CON-02 | Signing, immutable text and dated addenda | B | C | In progress | `member-b/signing-addenda`; [PostgreSQL CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40394151806); A migration number, DEC02, protected HTTP, C review and AT03 pending |
 | TASK-CON-03 | Consultation editor, sign and history UI | B | C | Pending | — |
 | TASK-CON-04 | AT02–03 patient/consultation verification | B | C | Pending | — |
 
