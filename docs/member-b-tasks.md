@@ -23,7 +23,7 @@ For every new B task contribution, start a **new branch** from the latest integr
 | TASK-PAT-03 | In progress | `member-b/patient-screens` / [PR #29](https://github.com/thimira20011/AyurFlow/pull/29), merged | Screens wired to protected patient API; CI passed; shared sign-in/UI, DEC02/07, C review and integrated AT02 remain |
 | TASK-CON-01 | In progress | `member-b/consultation-drafts` / [PR #32](https://github.com/thimira20011/AyurFlow/pull/32) | [CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40267707813); A migration number, DEC02 assignment policy, protected HTTP, C review and AT03 pending |
 | TASK-CON-02 | In progress | `member-b/signing-addenda` | [PostgreSQL CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40394151806); A migration number, DEC02, C review and integrated AT03 pending |
-| TASK-CON-03 | In progress | `member-b/consultation-screens` | Editor/history and synthetic preview built; protected clinical HTTP, DEC02, C/F review, UI-06 and AT03 remain |
+| TASK-CON-03 | In progress | `member-b/consultation-screens` | Editor/history and synthetic preview built; [branch CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40399408858); protected clinical HTTP, DEC02, C/F review, UI-06 and AT03 remain |
 | TASK-CON-04 | Pending | `member-b/patient-consultation-tests` | PAT-02/03, CON-01/03; AT02–03 and C review |
 | TASK-CLN-01 | Pending | `member-b/pathway-schema` | SET-02/06, PAT-01; approved pathway |
 | TASK-CLN-02 | Pending | `member-b/plan-approval` | CLN-01, AUTH-03/05; AT04 |
