@@ -99,7 +99,15 @@ func (s *Service) Login(ctx context.Context, identifier, password, previousToken
 	} else {
 		burnPasswordWork(password)
 	}
-	// Password verification can be expensive; never backdate a block or new session.
+	if active && valid {
+		// Account administration locks this row before revoking sessions. Recheck
+		// after password work so disable cannot miss a newly issued valid session.
+		err = tx.QueryRow(ctx, `SELECT active FROM staff_accounts WHERE id=$1 FOR SHARE`, staffID).Scan(&active)
+		if err != nil {
+			return Session{}, "", err
+		}
+	}
+	// Password verification and account locks can wait; never backdate a session.
 	now = s.clock().UTC()
 	if !active || !valid {
 		failures++

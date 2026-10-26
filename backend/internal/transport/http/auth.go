@@ -21,9 +21,10 @@ type SessionService interface {
 }
 
 type AuthRoutes struct {
-	Service       SessionService
-	AllowedOrigin string
-	Patients      PatientService
+	Service        SessionService
+	AllowedOrigin  string
+	Patients       PatientService
+	Administration AdministrationService
 }
 
 func registerAuth(api *gin.RouterGroup, routes AuthRoutes) {

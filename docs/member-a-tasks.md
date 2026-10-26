@@ -4,12 +4,34 @@
 
 Sources: *AyurFlow Team task plan* (1 October 2026), especially pp. 2–5 and 11–14; *AyurFlow SRS* v1.0, especially pp. 4–6, 13, 17–21. See [the implementation plan](implementation-plan.md) for dependencies and release gates.
 
-## Baseline and branch status (24 October 2026)
+## Current completion summary — 26 October 2026
+
+### Implemented
+
+| Member A work | Implementation state | Review/acceptance still required |
+| --- | --- | --- |
+| AUTH-01 credentials/synthetic seed | Implemented and merged | Seed repeat evidence/F review, full AT01 |
+| AUTH-02 sessions | Implemented and merged, including fresh clock audit fix | DEC07/F review and full AT01 |
+| AUTH-03 shared authorization | Implemented and merged with patient integration | Real module assignment/report/export policies, DEC02/07 and full AT01/13 |
+| AUTH-04 login and staff administration | Implemented on `codex/auth-04-login` then `codex/auth-04-staff` | Review/merge login first, then staff; F/browser/AT01 review, recovery policy pending |
+| AUTH-05 shared audit | Implemented and merged | Each module's critical calls/retrieval permission adapter and full AT13 |
+| Shared CI/toolchain and three audit fixes | Implemented and merged | Ongoing checks with incoming features; not AT acceptance |
+
+### Remaining Member A tasks
+
+- **Next security verification:** AUTH-06 — complete AT01 with role accounts, browser/direct API access, CSRF, expiry/throttling, safe logs and F review.
+- **Deployment and recovery:** OPS-01 HTTPS/restricted credentials; OPS-02 encrypted backups/isolated restore; OPS-03 guides/outage runbook; OPS-04 clean startup/persistence; OPS-05 host/key/support decisions; OPS-06 training/handover.
+- **Integration reviews:** QA-02 report access; QA-04 module audit/permission sweep; QA-05 host/performance support. Owners still integrate their own real record policies and audit calls.
+- **Coordination/evidence:** SET-01 named ownership; SET-04 reviewed API/security conventions; SET-05 every member's startup proof; SET-06 reviewed module schema/API boundaries. The shared setup implementation alone does not complete these coordination tasks.
+- **Gates:** DEC02 clinical permissions/fields, DEC05 real-data authorization, DEC06 operations, DEC07 final security/recovery policy; other owners' DEC03/04/08 choices still affect integration. No pending decision is marked approved by code completion.
+
+## Baseline and branch status (26 October 2026)
 
 - The Go/Gin API, pgx pool, numbered migration runner, `/api/v1/health` and `/api/v1/ready` exist. Next.js has a shared shell and placeholder module pages. Compose and CI/check scripts exist.
-- Migrations `000001`–`000005` provide identity, roles, sessions, audit, billing and patient storage. Preserve both merged `000004` filenames. AUTH-03 on its feature branch adds shared role/record enforcement and a protected patient-demographics slice; real module assignment adapters remain pending.
+- Migrations `000001`–`000005` provide identity, roles, sessions, audit, billing and patient storage. Preserve both merged `000004` filenames. Merged AUTH-03 adds shared role/record enforcement and a protected patient-demographics slice; real module assignment adapters remain pending.
 - OpenAPI publishes reviewed health/readiness; the AUTH-03 packet describes implemented development auth/patient routes for review. A synthetic staff seed exists. Other business routes, HTTPS pilot deployment, backup automation and restore evidence remain pending.
-- `TASK-SET-05` is **in progress**: each member must still demonstrate local startup. AUTH-01, AUTH-02 and AUTH-05 are merged. Later auth tasks, pilot operations and full AT01–AT17 acceptance remain pending.
+- `TASK-SET-05` is **in progress**: each member must still demonstrate local startup. AUTH-01, AUTH-02, AUTH-03 and AUTH-05 are merged. AUTH-04 implementation is pushed for review on the two branches above; AUTH-06, pilot operations and full AT01–AT17 acceptance remain pending.
+- **AUTH-04 CI:** [login workflow](https://github.com/thimira20011/AyurFlow/actions/runs/40226412067) and [staff workflow](https://github.com/thimira20011/AyurFlow/actions/runs/40227744450) passed backend, frontend, security and PostgreSQL integration jobs. Staff CI executed 81 integration cases with race detection and no skips. This does not close browser/UAT or reviewer acceptance.
 
 ### TASK-SET-05 CI repair slice
 
@@ -24,7 +46,7 @@ Sources: *AyurFlow Team task plan* (1 October 2026), especially pp. 2–5 and 11
 - [ ] **TASK-SET-05 — finish the scaffold.** Verify Go/Gin, Next.js, migrations and checks on every member's machine; provide repeatable, synthetic-only seeds once identity and patient fields are ready. Resolve actual setup failures. **Done:** each member demonstrates local startup; `scripts/check.ps1` passes; instructions and evidence are recorded. F assists.
 - [ ] **TASK-SET-06 — coordinate schema and OpenAPI boundaries.** Collect each module owner's fields, foreign keys, actions, permissions and errors; agree migration numbers and inter-module IDs. A coordinates; each owner writes their own module contract/migration. **Done:** reviewed logical schema, API examples and migration order; no undocumented cross-module assumptions.
 - [x] **TASK-AUTH-01 — finish account/role/session foundation.** The existing schema was reviewed; Argon2id create/verify and an explicit development-only synthetic staff seed were implemented on branch `codex/auth-01-password-seed` (commit `8277cc7`). Go format, vet, unit tests and builds pass; no plaintext or default credential is committed. **Acceptance pending:** run the seed and its repeat case against PostgreSQL, then obtain F's review. This is implementation complete, not AT01 passed.
-- [x] **TASK-AUTH-02 — implement sessions.** Merged into `dev` through PR #12 (`812a93f`). Login/logout/session lookup, hashed opaque tokens, expiry, revocation, disabled-account rejection and PostgreSQL-backed identifier throttling are implemented. The [merged workflow](https://github.com/thimira20011/AyurFlow/actions/runs/39788040138) passed, including the PostgreSQL lifecycle test. Auth routes require explicit DEC07 configuration. **Acceptance pending:** DEC07/F review, account-disable wiring in TASK-AUTH-04 and full AT01 evidence.
+- [x] **TASK-AUTH-02 — implement sessions.** Merged into `dev` through PR #12 (`812a93f`). Login/logout/session lookup, hashed opaque tokens, expiry, revocation, disabled-account rejection and PostgreSQL-backed identifier throttling are implemented. The [merged workflow](https://github.com/thimira20011/AyurFlow/actions/runs/39788040138) passed, including the PostgreSQL lifecycle test. Auth routes require explicit DEC07 configuration. **Acceptance pending:** DEC07/F review, review/merge of account-disable wiring in TASK-AUTH-04 and full AT01 evidence.
   - [x] **Session clock audit fix:** `codex/audit-session-expiry` checks expiry after pool/row-lock waits for all session paths and uses fresh login timestamps. Deterministic PostgreSQL regressions are added; local unit/vet/build and integration compilation passed. Real database/race execution and F review remain pending. See [audit inventory and evidence](audits/session-expiry.md).
 - [x] **TASK-AUTH-03 — shared authorization implementation.** On `codex/auth-03-authorization`: session/CSRF middleware, non-rotating protected request validation, current database role/active-account checks in the business transaction, fail-closed record-assignment interface and reception-only patient route integration. The user approved provisional synthetic access rules on 24 October and retained explicit DEC07 configuration. Direct API/database tests cover forbidden requests, clinical admin denial, revocation/expiry, retries of CSRF-protected requests and audit rollback. **Acceptance/handoffs pending:** F review, B/C patient handoff, actual clinical/therapist assignment adapters, module-specific report/export/audit policies, DEC02/07 and complete AT01/AT13. No unimplemented module route is exposed. See [integration instructions](../backend/internal/authorization/README.md) and [evidence](testing.md).
 - [x] **TASK-AUTH-05 — transactional audit foundation.** Implemented on `codex/auth-05-audit`: caller-transaction writer with rollback on failure, bounded structured metadata/changed-field names, append-only PostgreSQL protection and object-scoped reads requiring an explicit authorization adapter. Go tests, vet, builds and [PostgreSQL/race CI](https://github.com/thimira20011/AyurFlow/actions/runs/39791162419) pass. See the [module integration instructions](../backend/internal/audit/README.md) and [verification evidence](testing.md). **Acceptance pending:** F review, AUTH-03 authorization/route integration, each module's audit calls and full AT13. No audit route/UI is exposed before those permission gates.
