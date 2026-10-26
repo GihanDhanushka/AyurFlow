@@ -21,7 +21,7 @@ For every new B task contribution, start a **new branch** from the latest integr
 | TASK-PAT-01 | In progress | `member-b/patient-schema` / PR #19 | Isolated PostgreSQL schema test passed in CI; A migration-number confirmation, C review, DEC02 and AT02 integration pending |
 | TASK-PAT-02 | In progress | `member-b/registration-search` / PR #22 | Registration, search and audited-update core passed PostgreSQL CI; AUTH-03/CSRF, DEC02, C review and AT02 integration remain |
 | TASK-PAT-03 | In progress | `member-b/patient-screens` | Screens wired to protected patient API; frontend CI passed; shared sign-in/UI, DEC02/07, C review and integrated AT02 remain |
-| TASK-CON-01 | Pending | `member-b/consultation-drafts` | PAT-01, SET-02, AUTH-03; draft without plan |
+| TASK-CON-01 | In progress | `member-b/consultation-drafts` | Draft schema/service/tests added; A migration number, DEC02 assignment policy, protected HTTP, C review and AT03 pending |
 | TASK-CON-02 | Pending | `member-b/signing-addenda` | CON-01, AUTH-05; AT03 immutability |
 | TASK-CON-03 | Pending | `member-b/consultation-screens` | CON-02, UI-02/06; history UI |
 | TASK-CON-04 | Pending | `member-b/patient-consultation-tests` | PAT-02/03, CON-01/03; AT02–03 and C review |
@@ -45,7 +45,7 @@ Tasks may be prepared while decisions are pending, but they cannot be marked Don
 
 ## Sprint 2 — consultations and clinical pathway (weeks 3–4)
 
-- [ ] **TASK-CON-01 (CON-01) — Create consultation/addendum schema and draft actions.** Allow an authorised clinician to create and edit a consultation without a care plan. Enforce record access on reads and writes.
+- [ ] **TASK-CON-01 (CON-01) — Create consultation/addendum schema and draft actions.** `member-b/consultation-drafts` adds a draft-only schema and transactional create/read/edit service without a care-plan link. A required access-policy interface denies by default while DEC02 leaves the production assignment source undecided; protected routes are not exposed yet. A confirms migration number 000006, C reviews, and AT03 requires integrated access and audit evidence. Signing/addenda belong to CON-02.
 - [ ] **TASK-CON-02 (CON-02–03) — Implement signing and dated addenda.** Signing records clinician and time and locks the original text. Reject stale edits and competing signatures. Append corrections with author, time, and reason; never replace the signed original. Keep required audit writes atomic with the action.
 - [ ] **TASK-CON-03 — Build consultation editor and history.** Distinguish draft and signed states and show dated addenda in order. Keep full clinical text unavailable to non-clinical roles.
 - [ ] **TASK-CON-04 — Verify patient and consultation behavior.** Complete AT02–03 with synthetic data, direct forbidden API requests, a duplicate-identity race, Unicode search, a signing race, and preserved original/addendum history. C reviews.
