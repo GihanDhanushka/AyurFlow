@@ -42,6 +42,10 @@ AUTH-02 PostgreSQL follow-up: the [workflow for merged PR #12](https://github.co
 
 Scaffold verification on 2 October 2026: Go formatting, vet, tests and both command builds passed; frontend lint, typecheck and production build passed; JSON and YAML syntax checks passed. Docker is not installed on the verification machine, so container startup, SQL execution and restart persistence remain unverified. No AT01-AT17 result is marked passed.
 
+TASK-CON-03 implementation check (27 October 2026, `member-b/consultation-screens`, Windows, Node 22.23.2/npm 10.9.8): Codex used synthetic consultation examples and ran `npm test` (9/9 passed), `npm run lint` (passed), `npm run typecheck` (passed), `git diff --check` (passed), and `node node_modules/next/dist/bin/next build --webpack` (passed; `/clinical` built as a dynamic route). The checks cover UTF-8 field limits, patient-ID validation and Asia/Colombo display alongside existing frontend regressions. The standard Turbopack production build could not complete locally: its first run could not fetch the existing Inter font; a network-enabled retry then stopped with a Turbopack process error in the existing patient CSS module. The supported webpack production build completed successfully. These checks are **not AT03 or AT15**. Protected clinical HTTP routes, DEC02 assignment/access policy, C/F review and integrated sign/addendum evidence remain open.
+
+The [TASK-CON-03 branch workflow](https://github.com/thimira20011/AyurFlow/actions/runs/40399408858) for implementation commit `ba3dc3a` passed frontend lint/tests/typecheck/Turbopack production build, backend checks, PostgreSQL integration/race tests and security scanning on GitHub Actions Ubuntu with synthetic data. This confirms build and regression checks for the branch; it does not supply protected clinical HTTP or AT03 journey evidence.
+
 | Test | Scope | Proposed owner | Status |
 | --- | --- | --- | --- |
 | AT01 | Accounts, sessions, CSRF, roles and record restrictions | A | Pending |
