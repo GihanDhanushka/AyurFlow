@@ -180,7 +180,7 @@
 .searchInput:focus {
   border-color: var(--bill-accent);
   outline: none;
-  ring: 2px oklch(0.38 0.1 155 / 0.15);
+  box-shadow: 0 0 0 2px oklch(0.38 0.1 155 / 0.15);
 }
 
 .filterPills {
