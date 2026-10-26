@@ -103,8 +103,8 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 
 | Task | Deliverable | Owner slot | Peer reviewer | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| TASK-BILL-01 | Invoice/receipt schema and integer LKR | E | D | In progress | `member-e/task-bill-01-invoice-schema`; domain types, repository, service, handler and migration written; routes not registered (AUTH-03 gate); patient FK deferred until PAT-01 |
-| TASK-BILL-02 | Draft editing and atomic invoice issue | E | D | Pending | — |
+| TASK-BILL-01 | Invoice/receipt schema and integer LKR | E | D | In review | Merged in PR #17; migration `000004_billing.up.sql` live in `dev` |
+| TASK-BILL-02 | Draft editing and atomic invoice issue | E | D | In progress | `member-e/task-bill-02-invoice-lifecycle`; routes wired under `RequireSession` in `router.go`, atomic issue, item lines, role checks and unit/integration tests pass |
 | TASK-BILL-03 | Direct receipts, deposits and balance | E | D | Pending | — |
 | TASK-BILL-04 | Unique receipt operations and concurrency | E | D | Pending | — |
 | TASK-BILL-05 | Invoice editor, issued view, receipt/history UI | E | D | Pending | — |

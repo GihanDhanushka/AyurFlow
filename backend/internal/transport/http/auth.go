@@ -25,6 +25,7 @@ type AuthRoutes struct {
 	AllowedOrigin  string
 	Patients       PatientService
 	Administration AdministrationService
+	Billing        BillingService
 }
 
 func registerAuth(api *gin.RouterGroup, routes AuthRoutes) {

@@ -22,7 +22,13 @@ func billingFixture(t *testing.T) (*Service, *pgxpool.Pool) {
 	t.Helper()
 	pool := testutil.Postgres(t, "BILLING_TEST_DATABASE_URL")
 	_, err := pool.Exec(t.Context(), `INSERT INTO staff_accounts(id, login_identifier, password_hash)
-		VALUES ($1, 'synthetic-billing-actor', '$argon2id$synthetic-non-login-fixture')`, billingTestActor)
+		VALUES ($1, 'synthetic-billing-actor', '$argon2id$synthetic-non-login-fixture')
+		ON CONFLICT (id) DO NOTHING`, billingTestActor)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = pool.Exec(t.Context(), `INSERT INTO staff_roles(staff_id, role_code)
+		VALUES ($1, 'billing') ON CONFLICT DO NOTHING`, billingTestActor)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -218,5 +224,185 @@ func TestReceiptAuditFailureRollsBackIntegration(t *testing.T) {
 	err = pool.QueryRow(t.Context(), `SELECT count(*) FROM audit_events WHERE action='receipt.posted'`).Scan(&receiptAudits)
 	if err != nil || receipts != 0 || receiptAudits != 0 {
 		t.Fatal("receipt or audit survived the failed transaction")
+	}
+}
+
+func TestInvoiceDraftAndIssueLifecycleIntegration(t *testing.T) {
+	service, pool := billingFixture(t)
+	patientID := "30ad6d29-79b0-4028-93c4-614df48ec3ea"
+
+	// 1. Create draft invoice
+	inv, err := service.CreateInvoice(t.Context(), billingTestActor, CreateInvoiceRequest{
+		PatientID: patientID,
+	})
+	if err != nil {
+		t.Fatalf("failed to create draft invoice: %v", err)
+	}
+	if inv.Status != StatusDraft {
+		t.Fatalf("expected status draft, got %s", inv.Status)
+	}
+	if inv.TotalMinor != nil {
+		t.Fatalf("expected nil total on draft, got %v", inv.TotalMinor)
+	}
+
+	// 2. Add line items with integer LKR minor units
+	item1, err := service.AddItem(t.Context(), billingTestActor, inv.ID, AddItemRequest{
+		Description: "Ayurvedic Consultation", Quantity: 1, UnitPriceMinor: 250000,
+	})
+	if err != nil || item1.LineTotalMinor != 250000 {
+		t.Fatalf("failed to add item1: item=%+v err=%v", item1, err)
+	}
+
+	item2, err := service.AddItem(t.Context(), billingTestActor, inv.ID, AddItemRequest{
+		Description: "Shirodhara Oil 500g", Quantity: 2, UnitPriceMinor: 150000,
+	})
+	if err != nil || item2.LineTotalMinor != 300000 {
+		t.Fatalf("failed to add item2: item=%+v err=%v", item2, err)
+	}
+
+	tempItem, err := service.AddItem(t.Context(), billingTestActor, inv.ID, AddItemRequest{
+		Description: "Mistaken Item", Quantity: 1, UnitPriceMinor: 50000,
+	})
+	if err != nil {
+		t.Fatalf("failed to add tempItem: %v", err)
+	}
+
+	// 3. Remove mistakenly added item from draft
+	err = service.RemoveItem(t.Context(), billingTestActor, inv.ID, tempItem.ID)
+	if err != nil {
+		t.Fatalf("failed to remove item: %v", err)
+	}
+
+	// Check invoice lines
+	fetched, err := service.GetInvoice(t.Context(), billingTestActor, inv.ID)
+	if err != nil || len(fetched.Items) != 2 {
+		t.Fatalf("expected 2 items after removal, got %d items: %v", len(fetched.Items), err)
+	}
+
+	// 4. Atomically issue invoice
+	issued, err := service.IssueInvoice(t.Context(), billingTestActor, inv.ID)
+	if err != nil {
+		t.Fatalf("failed to issue invoice: %v", err)
+	}
+	if issued.Status != StatusIssued {
+		t.Fatalf("expected status issued, got %s", issued.Status)
+	}
+	if issued.TotalMinor == nil || *issued.TotalMinor != 550000 {
+		t.Fatalf("expected total 550000 minor units (Rs. 5,500.00), got %v", issued.TotalMinor)
+	}
+	if issued.IssuedBy == nil || *issued.IssuedBy != billingTestActor {
+		t.Fatalf("expected issued_by %s, got %v", billingTestActor, issued.IssuedBy)
+	}
+	if issued.IssuedAt == nil {
+		t.Fatal("expected non-nil issued_at")
+	}
+
+	// Check audit event
+	var auditCount int
+	err = pool.QueryRow(t.Context(), `SELECT count(*) FROM audit_events WHERE action='invoice.issued' AND object_id=$1`, inv.ID).Scan(&auditCount)
+	if err != nil || auditCount != 1 {
+		t.Fatalf("expected 1 audit event for invoice.issued, got %d (err: %v)", auditCount, err)
+	}
+
+	// 5. Verify immutability: Cannot add or remove items on an issued invoice
+	_, err = service.AddItem(t.Context(), billingTestActor, inv.ID, AddItemRequest{
+		Description: "Late Addition", Quantity: 1, UnitPriceMinor: 10000,
+	})
+	if !errors.Is(err, ErrConflict) {
+		t.Fatalf("adding item to issued invoice must return ErrConflict, got %v", err)
+	}
+
+	err = service.RemoveItem(t.Context(), billingTestActor, inv.ID, item1.ID)
+	if !errors.Is(err, ErrConflict) {
+		t.Fatalf("removing item from issued invoice must return ErrConflict, got %v", err)
+	}
+
+	// 6. Cannot void an issued invoice
+	err = service.VoidInvoice(t.Context(), billingTestActor, inv.ID)
+	if !errors.Is(err, ErrConflict) {
+		t.Fatalf("voiding issued invoice must return ErrConflict, got %v", err)
+	}
+}
+
+func TestInvoiceRoleAccessDeniedIntegration(t *testing.T) {
+	service, pool := billingFixture(t)
+	patientID := "30ad6d29-79b0-4028-93c4-614df48ec3ea"
+
+	// Staff account with therapist role only (no billing role)
+	therapistActor := "e11e11e1-1111-4444-a045-127158e311f6"
+	_, err := pool.Exec(t.Context(), `INSERT INTO staff_accounts(id, login_identifier, password_hash)
+		VALUES ($1, 'synthetic-therapist', '$argon2id$synthetic-non-login-fixture')
+		ON CONFLICT (id) DO NOTHING`, therapistActor)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = pool.Exec(t.Context(), `INSERT INTO staff_roles(staff_id, role_code)
+		VALUES ($1, 'therapist') ON CONFLICT DO NOTHING`, therapistActor)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Attempting to create invoice as therapist must fail
+	_, err = service.CreateInvoice(t.Context(), therapistActor, CreateInvoiceRequest{PatientID: patientID})
+	if !errors.Is(err, ErrForbidden) {
+		t.Fatalf("expected ErrForbidden for therapist actor, got %v", err)
+	}
+
+	// Disabled staff account with billing role
+	disabledActor := "d22d22d2-2222-4444-a045-127158e311f6"
+	_, err = pool.Exec(t.Context(), `INSERT INTO staff_accounts(id, login_identifier, password_hash, active)
+		VALUES ($1, 'synthetic-disabled', '$argon2id$synthetic-non-login-fixture', false)
+		ON CONFLICT (id) DO NOTHING`, disabledActor)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = pool.Exec(t.Context(), `INSERT INTO staff_roles(staff_id, role_code)
+		VALUES ($1, 'billing') ON CONFLICT DO NOTHING`, disabledActor)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = service.CreateInvoice(t.Context(), disabledActor, CreateInvoiceRequest{PatientID: patientID})
+	if !errors.Is(err, ErrForbidden) {
+		t.Fatalf("expected ErrForbidden for disabled actor, got %v", err)
+	}
+}
+
+func TestVoidDraftInvoiceIntegration(t *testing.T) {
+	service, pool := billingFixture(t)
+	patientID := "30ad6d29-79b0-4028-93c4-614df48ec3ea"
+
+	inv, err := service.CreateInvoice(t.Context(), billingTestActor, CreateInvoiceRequest{PatientID: patientID})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = service.VoidInvoice(t.Context(), billingTestActor, inv.ID)
+	if err != nil {
+		t.Fatalf("failed to void draft invoice: %v", err)
+	}
+
+	fetched, err := service.GetInvoice(t.Context(), billingTestActor, inv.ID)
+	if err != nil || fetched.Status != StatusVoid {
+		t.Fatalf("expected status void, got %s (err: %v)", fetched.Status, err)
+	}
+
+	var auditCount int
+	err = pool.QueryRow(t.Context(), `SELECT count(*) FROM audit_events WHERE action='invoice.voided' AND object_id=$1`, inv.ID).Scan(&auditCount)
+	if err != nil || auditCount != 1 {
+		t.Fatalf("expected 1 audit event for invoice.voided, got %d", auditCount)
+	}
+
+	// Cannot add item or issue void invoice
+	_, err = service.AddItem(t.Context(), billingTestActor, inv.ID, AddItemRequest{
+		Description: "Item", Quantity: 1, UnitPriceMinor: 1000,
+	})
+	if !errors.Is(err, ErrConflict) {
+		t.Fatalf("adding item to void invoice must return ErrConflict, got %v", err)
+	}
+
+	_, err = service.IssueInvoice(t.Context(), billingTestActor, inv.ID)
+	if !errors.Is(err, ErrConflict) {
+		t.Fatalf("issuing void invoice must return ErrConflict, got %v", err)
 	}
 }
