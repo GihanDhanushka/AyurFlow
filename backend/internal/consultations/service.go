@@ -158,7 +158,7 @@ func (s *Service) Update(ctx context.Context, actor, patientID, id string, versi
 		}
 		if err := audit.Write(ctx, tx, audit.Event{
 			ActorID: actor, Action: "consultation.updated",
-			Object: audit.Object{Type: "consultation", ID: id},
+			Object:        audit.Object{Type: "consultation", ID: id},
 			ChangedFields: []string{"draft_text"},
 		}); err != nil {
 			return err
