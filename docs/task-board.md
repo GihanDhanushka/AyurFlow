@@ -34,7 +34,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 | Task | Deliverable | Owner slot | Peer reviewer | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | TASK-UI-01 | Role-based navigation and screen access | F | A; all owners review | Pending | — |
-| TASK-UI-02 | Patient, consultation and plan wireframes | F with B | A | Pending | — |
+| TASK-UI-02 | Patient, consultation and plan wireframes | F with B | A | In progress | B's [visual wireframes and handoff](ui/member-b-clinical-wireframes.md) on `member-b/ui-02-clinical-wireframes`; F/A review and DEC02/08 decisions pending |
 | TASK-UI-03 | Availability, booking and therapist wireframes | F with C | A | Pending | — |
 | TASK-UI-04 | Batch, recipe, preparation and traceability wireframes | F with D | A | Pending | — |
 | TASK-UI-05 | Invoice, receipt, balance and admin wireframes | F with E/A | A | Pending | — |
