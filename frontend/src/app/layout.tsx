@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Link from "next/link";
-import "./globals.css";
+import { Navbar } from "@/components/navbar";
+import { MainLayout } from "@/components/main-layout";
 import { StaffSessionProvider } from "@/features/administration/session";
+import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -18,17 +19,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body>
-        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:bg-white focus:p-3">
+      <body className="min-h-screen flex flex-col bg-[#f6f7f2] text-[#183a2d] antialiased">
+        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:bg-white focus:p-3 focus:z-50">
           Skip to content
         </a>
-        <header className="border-b border-green-900/15 bg-white">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-            <Link href="/" className="text-2xl font-semibold tracking-tight">AyurFlow</Link>
-            <span className="rounded-full bg-green-50 px-3 py-1 text-sm text-green-900">Initial workspace</span>
-          </div>
-        </header>
-        <main id="main" className="mx-auto max-w-6xl px-6 py-12"><StaffSessionProvider>{children}</StaffSessionProvider></main>
+        <StaffSessionProvider>
+          <Navbar />
+          <MainLayout>{children}</MainLayout>
+        </StaffSessionProvider>
       </body>
     </html>
   );
