@@ -15,11 +15,11 @@ import (
 )
 
 var (
-	ErrForbidden      = errors.New("consultations: access denied")
-	ErrNotFound       = errors.New("consultations: not found")
-	ErrInvalidDraft   = errors.New("consultations: invalid draft")
-	ErrStaleVersion   = errors.New("consultations: stale version")
-	ErrNotDraft       = errors.New("consultations: no longer a draft")
+	ErrForbidden    = errors.New("consultations: access denied")
+	ErrNotFound     = errors.New("consultations: not found")
+	ErrInvalidDraft = errors.New("consultations: invalid draft")
+	ErrStaleVersion = errors.New("consultations: stale version")
+	ErrNotDraft     = errors.New("consultations: no longer a draft")
 )
 
 // AccessPolicy must check an active clinician's patient assignment in the
