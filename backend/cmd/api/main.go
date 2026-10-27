@@ -13,6 +13,7 @@ import (
 	"ayurflow/backend/internal/administration"
 	"ayurflow/backend/internal/auth"
 	"ayurflow/backend/internal/authorization"
+	"ayurflow/backend/internal/billing"
 	"ayurflow/backend/internal/config"
 	"ayurflow/backend/internal/patients"
 	"ayurflow/backend/internal/platform/database"
@@ -51,6 +52,7 @@ func run() error {
 			Service: auth.NewService(pool, cfg.Auth), AllowedOrigin: cfg.Auth.AllowedOrigin,
 			Patients:       patients.NewService(pool, &authorization.PatientPolicy{}),
 			Administration: administration.NewService(pool),
+			Billing:        billing.NewService(pool),
 		})
 	} else {
 		router = transport.NewRouter(pool)
