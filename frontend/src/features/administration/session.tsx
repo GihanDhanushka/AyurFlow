@@ -26,7 +26,8 @@ export function StaffSessionProvider({ children }: { children: React.ReactNode }
   const pending = useRef<Promise<void> | null>(null);
   const path = usePathname();
   const router = useRouter();
-  const publicPage = path === "/sign-in" || path === "/sign-up" || path === "/";
+  const syntheticPreview = process.env.NODE_ENV === "development" && path === "/clinical/preview";
+  const publicPage = path === "/sign-in" || path === "/sign-up" || path === "/" || syntheticPreview;
 
   const refresh = useCallback(async () => {
     if (pending.current) return pending.current;

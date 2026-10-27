@@ -15,11 +15,13 @@ import (
 )
 
 var (
-	ErrForbidden    = errors.New("consultations: access denied")
-	ErrNotFound     = errors.New("consultations: not found")
-	ErrInvalidDraft = errors.New("consultations: invalid draft")
-	ErrStaleVersion = errors.New("consultations: stale version")
-	ErrNotDraft     = errors.New("consultations: no longer a draft")
+	ErrForbidden       = errors.New("consultations: access denied")
+	ErrNotFound        = errors.New("consultations: not found")
+	ErrInvalidDraft    = errors.New("consultations: invalid draft")
+	ErrStaleVersion    = errors.New("consultations: stale version")
+	ErrNotDraft        = errors.New("consultations: no longer a draft")
+	ErrNotSigned       = errors.New("consultations: not signed")
+	ErrInvalidAddendum = errors.New("consultations: invalid addendum")
 )
 
 // AccessPolicy must check an active clinician's patient assignment in the
@@ -32,15 +34,28 @@ type AccessPolicy interface {
 }
 
 type Consultation struct {
-	ID        string    `json:"id"`
-	PatientID string    `json:"patientId"`
-	Status    string    `json:"status"`
-	DraftText string    `json:"draftText"`
-	Version   int64     `json:"version"`
-	CreatedAt time.Time `json:"createdAt"`
-	CreatedBy string    `json:"createdBy"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	UpdatedBy string    `json:"updatedBy"`
+	ID         string     `json:"id"`
+	PatientID  string     `json:"patientId"`
+	Status     string     `json:"status"`
+	DraftText  string     `json:"draftText,omitempty"`
+	SignedText string     `json:"signedText,omitempty"`
+	SignedBy   string     `json:"signedBy,omitempty"`
+	SignedAt   *time.Time `json:"signedAt,omitempty"`
+	Addenda    []Addendum `json:"addenda,omitempty"`
+	Version    int64      `json:"version"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	CreatedBy  string     `json:"createdBy"`
+	UpdatedAt  time.Time  `json:"updatedAt"`
+	UpdatedBy  string     `json:"updatedBy"`
+}
+
+type Addendum struct {
+	ID             string    `json:"id"`
+	ConsultationID string    `json:"consultationId"`
+	AuthorID       string    `json:"authorId"`
+	CreatedAt      time.Time `json:"createdAt"`
+	Reason         string    `json:"reason"`
+	Body           string    `json:"body"`
 }
 
 type Service struct {
@@ -89,7 +104,7 @@ func (s *Service) Create(ctx context.Context, actor, patientID, draftText string
 			return err
 		}
 		var err error
-		created, err = readDraft(ctx, tx, patientID, id)
+		created, err = readConsultation(ctx, tx, patientID, id)
 		return err
 	})
 	return created, err
@@ -111,7 +126,7 @@ func (s *Service) Get(ctx context.Context, actor, patientID, id string) (Consult
 			return err
 		}
 		var err error
-		found, err = readDraft(ctx, tx, patientID, id)
+		found, err = readConsultation(ctx, tx, patientID, id)
 		return err
 	})
 	return found, err
@@ -163,14 +178,122 @@ func (s *Service) Update(ctx context.Context, actor, patientID, id string, versi
 		}); err != nil {
 			return err
 		}
-		updated, err = readDraft(ctx, tx, patientID, id)
+		updated, err = readConsultation(ctx, tx, patientID, id)
 		return err
 	})
 	return updated, err
 }
 
+// Sign freezes the current draft as the original signed record. A concurrent
+// edit or signature with the same version loses after the row lock.
+func (s *Service) Sign(ctx context.Context, actor, patientID, id string, version int64) (Consultation, error) {
+	if !validUUID(actor) {
+		return Consultation{}, ErrForbidden
+	}
+	if !validUUID(patientID) || !validUUID(id) {
+		return Consultation{}, ErrNotFound
+	}
+	if version <= 0 {
+		return Consultation{}, ErrStaleVersion
+	}
+	if s == nil || s.pool == nil || s.access == nil {
+		return Consultation{}, ErrForbidden
+	}
+	var signed Consultation
+	err := pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		if err := s.access.CanEdit(ctx, tx, actor, patientID, id); err != nil {
+			return err
+		}
+		var currentVersion int64
+		var status string
+		err := tx.QueryRow(ctx, `SELECT record_version, status FROM consultations
+			WHERE id=$1 AND patient_id=$2 FOR UPDATE`, id, patientID).Scan(&currentVersion, &status)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return err
+		}
+		if status != "draft" {
+			return ErrNotDraft
+		}
+		if currentVersion != version {
+			return ErrStaleVersion
+		}
+		_, err = tx.Exec(ctx, `UPDATE consultations SET status='signed', signed_text=draft_text,
+			draft_text=NULL, signed_by=$3, signed_at=clock_timestamp(),
+			record_version=record_version+1, updated_at=clock_timestamp(), updated_by=$3
+			WHERE id=$1 AND patient_id=$2`, id, patientID, actor)
+		if err != nil {
+			return err
+		}
+		if err := audit.Write(ctx, tx, audit.Event{
+			ActorID: actor, Action: "consultation.signed",
+			Object:        audit.Object{Type: "consultation", ID: id},
+			ChangedFields: []string{"status", "signed_text", "signed_by", "signed_at"},
+		}); err != nil {
+			return err
+		}
+		signed, err = readConsultation(ctx, tx, patientID, id)
+		return err
+	})
+	return signed, err
+}
+
+// AddCorrection appends a separately dated correction without changing the
+// signed original. Reason and body are kept in the clinical table, not audit.
+func (s *Service) AddCorrection(ctx context.Context, actor, patientID, id, reason, body string) (Addendum, error) {
+	if !validUUID(actor) {
+		return Addendum{}, ErrForbidden
+	}
+	if !validUUID(patientID) || !validUUID(id) {
+		return Addendum{}, ErrNotFound
+	}
+	if !validReason(reason) || !validDraft(body) {
+		return Addendum{}, ErrInvalidAddendum
+	}
+	if s == nil || s.pool == nil || s.access == nil {
+		return Addendum{}, ErrForbidden
+	}
+	var added Addendum
+	err := pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		if err := s.access.CanEdit(ctx, tx, actor, patientID, id); err != nil {
+			return err
+		}
+		var status string
+		err := tx.QueryRow(ctx, `SELECT status FROM consultations
+			WHERE id=$1 AND patient_id=$2 FOR UPDATE`, id, patientID).Scan(&status)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return err
+		}
+		if status != "signed" {
+			return ErrNotSigned
+		}
+		err = tx.QueryRow(ctx, `INSERT INTO consultation_addenda(consultation_id,author_id,reason,body)
+			VALUES ($1,$2,$3,$4) RETURNING id::text, consultation_id::text,
+			author_id::text, created_at, reason, body`, id, actor, reason, body).Scan(
+			&added.ID, &added.ConsultationID, &added.AuthorID, &added.CreatedAt, &added.Reason, &added.Body,
+		)
+		if err != nil {
+			return err
+		}
+		return audit.Write(ctx, tx, audit.Event{
+			ActorID: actor, Action: "consultation.addendum_created",
+			Object: audit.Object{Type: "consultation_addendum", ID: added.ID},
+		})
+	})
+	return added, err
+}
+
 func validDraft(value string) bool {
 	return utf8.ValidString(value) && len(value) <= 65536 && strings.TrimSpace(value) != ""
+}
+
+func validReason(value string) bool {
+	return utf8.ValidString(value) && len(value) <= 2048 && strings.TrimSpace(value) != ""
 }
 
 func validUUID(value string) bool {

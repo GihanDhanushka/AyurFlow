@@ -34,7 +34,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 | Task | Deliverable | Owner slot | Peer reviewer | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | TASK-UI-01 | Role-based navigation and screen access | F | A; all owners review | Pending | — |
-| TASK-UI-02 | Patient, consultation and plan wireframes | F with B | A | In progress | B's [visual wireframes and handoff](ui/member-b-clinical-wireframes.md) on `member-b/ui-02-clinical-wireframes`; F/A review and DEC02/08 decisions pending |
+| TASK-UI-02 | Patient, consultation and plan wireframes | F with B | A | Done | [Wireframes and handoff](ui/member-b-clinical-wireframes.md) merged in [PR #33](https://github.com/thimira20011/AyurFlow/pull/33); collaborator approval and B-confirmed team review. DEC02/08 still gate affected clinical implementation/UAT. |
 | TASK-UI-03 | Availability, booking and therapist wireframes | F with C | A | Pending | — |
 | TASK-UI-04 | Batch, recipe, preparation and traceability wireframes | F with D | A | Pending | — |
 | TASK-UI-05 | Invoice, receipt, balance and admin wireframes | F with E/A | A | Pending | — |
@@ -60,8 +60,8 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 | TASK-PAT-02 | Registration, search and audited updates | B | C | In progress | [PR #22](https://github.com/thimira20011/AyurFlow/pull/22); [PostgreSQL CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40089021544); AUTH-03/CSRF, DEC02, C review and AT02 integration pending |
 | TASK-PAT-03 | Registration, search and detail screens | B | C | In progress | [PR #29](https://github.com/thimira20011/AyurFlow/pull/29) merged; development-only synthetic preview; [CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40177536481); shared sign-in/UI, DEC02/07, C review and AT02 journey pending |
 | TASK-CON-01 | Consultation/addendum schema and drafts | B | C | In progress | [PR #32](https://github.com/thimira20011/AyurFlow/pull/32); [CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40267707813); assignment policy, protected HTTP, A migration number, C review and AT03 pending |
-| TASK-CON-02 | Signing, immutable text and dated addenda | B | C | Pending | — |
-| TASK-CON-03 | Consultation editor, sign and history UI | B | C | Pending | — |
+| TASK-CON-02 | Signing, immutable text and dated addenda | B | C | In progress | `member-b/signing-addenda`; [PostgreSQL CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40394151806); A migration number, DEC02, protected HTTP, C review and AT03 pending |
+| TASK-CON-03 | Consultation editor, sign and history UI | B | C | In progress | `member-b/consultation-screens`: editor/history and development-only synthetic preview; [branch CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40399408858); protected clinical HTTP, DEC02, F shared UI, C review and AT03 pending |
 | TASK-CON-04 | AT02–03 patient/consultation verification | B | C | Pending | — |
 
 ## 5. Clinical plans and approvals (weeks 3–4)
