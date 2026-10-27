@@ -24,6 +24,7 @@ type AuthRoutes struct {
 	Service        SessionService
 	AllowedOrigin  string
 	Patients       PatientService
+	Consultations  ConsultationDraftService
 	Administration AdministrationService
 }
 
