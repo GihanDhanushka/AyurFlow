@@ -31,7 +31,7 @@ func (a *assignedAccess) CanCreate(_ context.Context, _ pgx.Tx, actor, patient s
 	return a.require(actor, patient)
 }
 func (a *assignedAccess) CanList(_ context.Context, _ pgx.Tx, actor, patient string) error {
-    return a.require(actor, patient)
+	return a.require(actor, patient)
 }
 func (a *assignedAccess) CanRead(_ context.Context, _ pgx.Tx, actor, patient, _ string) error {
 	return a.require(actor, patient)

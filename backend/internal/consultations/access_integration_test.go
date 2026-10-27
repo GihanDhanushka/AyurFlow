@@ -15,7 +15,10 @@ func TestAssignedConsultationAccessIntegration(t *testing.T) {
 	pool := testutil.Postgres(t)
 	ctx := t.Context()
 	var clinician, other, patientID string
-	for _, account := range []struct{ login string; id *string }{
+	for _, account := range []struct {
+		login string
+		id    *string
+	}{
 		{"synthetic-clinician", &clinician}, {"synthetic-other", &other},
 	} {
 		if err := pool.QueryRow(ctx, `INSERT INTO staff_accounts(login_identifier,password_hash)

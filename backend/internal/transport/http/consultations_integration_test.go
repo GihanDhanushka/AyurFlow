@@ -17,14 +17,22 @@ func TestProtectedConsultationDraftFlowIntegration(t *testing.T) {
 	patient := createProtectedPatient(t, f)
 	password := "synthetic-clinician-password"
 	hash, err := auth.HashPassword(password)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	var clinician string
 	if err := f.pool.QueryRow(t.Context(), `INSERT INTO staff_accounts(login_identifier,password_hash)
-		VALUES('synthetic-http-clinician',$1) RETURNING id::text`, hash).Scan(&clinician); err != nil { t.Fatal(err) }
+		VALUES('synthetic-http-clinician',$1) RETURNING id::text`, hash).Scan(&clinician); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := f.pool.Exec(t.Context(), `INSERT INTO staff_roles(staff_id,role_code)
-		VALUES($1,'clinician')`, clinician); err != nil { t.Fatal(err) }
+		VALUES($1,'clinician')`, clinician); err != nil {
+		t.Fatal(err)
+	}
 	session, token, err := f.sessions.Login(t.Context(), "synthetic-http-clinician", password, "")
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	listPath := "/api/v1/patients/" + patient.ID + "/consultations"
 	if response := protectedRequest(f.router, "GET", listPath, token, "", ""); response.Code != http.StatusNotFound {
 		t.Fatalf("unassigned list status=%d", response.Code)
@@ -34,7 +42,9 @@ func TestProtectedConsultationDraftFlowIntegration(t *testing.T) {
 		t.Fatalf("unassigned create status=%d", response.Code)
 	}
 	if _, err := f.pool.Exec(t.Context(), `INSERT INTO patient_clinician_assignments(patient_id,clinician_id,granted_by)
-		VALUES ($1,$2,$3)`, patient.ID, clinician, f.actor); err != nil { t.Fatal(err) }
+		VALUES ($1,$2,$3)`, patient.ID, clinician, f.actor); err != nil {
+		t.Fatal(err)
+	}
 	if response := protectedRequest(f.router, "POST", listPath, token, "",
 		`{"draftText":"CSRF denied"}`); response.Code != http.StatusForbidden {
 		t.Fatalf("missing CSRF status=%d", response.Code)
@@ -45,10 +55,16 @@ func TestProtectedConsultationDraftFlowIntegration(t *testing.T) {
 	}
 	response := protectedRequest(f.router, "POST", listPath, token, session.CSRFToken,
 		`{"draftText":"Synthetic සිංහල consultation"}`)
-	if response.Code != http.StatusCreated { t.Fatalf("create status=%d body=%s", response.Code, response.Body.String()) }
+	if response.Code != http.StatusCreated {
+		t.Fatalf("create status=%d body=%s", response.Code, response.Body.String())
+	}
 	var record consultations.Consultation
-	if err := json.Unmarshal(response.Body.Bytes(), &record); err != nil { t.Fatal(err) }
-	if record.CreatedBy != clinician || record.Status != "draft" { t.Fatalf("wrong consultation actor/status: %+v", record) }
+	if err := json.Unmarshal(response.Body.Bytes(), &record); err != nil {
+		t.Fatal(err)
+	}
+	if record.CreatedBy != clinician || record.Status != "draft" {
+		t.Fatalf("wrong consultation actor/status: %+v", record)
+	}
 	response = protectedRequest(f.router, "GET", listPath, token, "", "")
 	if response.Code != http.StatusOK || strings.Contains(response.Body.String(), "සිංහල") || !strings.Contains(response.Body.String(), record.ID) {
 		t.Fatalf("list leaked clinical text or hid entry: %d %s", response.Code, response.Body.String())
@@ -64,12 +80,20 @@ func TestProtectedConsultationDraftFlowIntegration(t *testing.T) {
 	}
 	response = protectedRequest(f.router, "PATCH", detailPath, token, session.CSRFToken,
 		`{"version":1,"draftText":"Synthetic edited draft"}`)
-	if response.Code != http.StatusOK { t.Fatalf("edit status=%d body=%s", response.Code, response.Body.String()) }
+	if response.Code != http.StatusOK {
+		t.Fatalf("edit status=%d body=%s", response.Code, response.Body.String())
+	}
 	response = protectedRequest(f.router, "PATCH", detailPath, token, session.CSRFToken,
 		`{"version":1,"draftText":"Stale draft"}`)
-	if response.Code != http.StatusConflict { t.Fatalf("stale edit status=%d", response.Code) }
+	if response.Code != http.StatusConflict {
+		t.Fatalf("stale edit status=%d", response.Code)
+	}
 	if _, err := f.pool.Exec(t.Context(), `UPDATE patient_clinician_assignments
-		SET revoked_at=clock_timestamp(), revoked_by=$2 WHERE patient_id=$1 AND clinician_id=$2`, patient.ID, clinician); err != nil { t.Fatal(err) }
+		SET revoked_at=clock_timestamp(), revoked_by=$2 WHERE patient_id=$1 AND clinician_id=$2`, patient.ID, clinician); err != nil {
+		t.Fatal(err)
+	}
 	response = protectedRequest(f.router, "GET", detailPath, token, "", "")
-	if response.Code != http.StatusNotFound { t.Fatalf("revoked detail status=%d", response.Code) }
+	if response.Code != http.StatusNotFound {
+		t.Fatalf("revoked detail status=%d", response.Code)
+	}
 }
