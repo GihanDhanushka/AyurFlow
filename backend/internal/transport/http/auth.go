@@ -26,6 +26,7 @@ type AuthRoutes struct {
 	Patients       PatientService
 	Consultations  ConsultationDraftService
 	Administration AdministrationService
+	Billing        BillingService
 }
 
 func registerAuth(api *gin.RouterGroup, routes AuthRoutes) {
