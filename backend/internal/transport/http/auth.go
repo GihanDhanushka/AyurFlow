@@ -25,6 +25,7 @@ type AuthRoutes struct {
 	AllowedOrigin  string
 	Patients       PatientService
 	Consultations  ConsultationDraftService
+	Signing        ConsultationSigningService
 	Administration AdministrationService
 	Billing        BillingService
 }

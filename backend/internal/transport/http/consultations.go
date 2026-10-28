@@ -20,6 +20,11 @@ type ConsultationDraftService interface {
 	UpdateByID(context.Context, string, string, int64, string) (consultations.Consultation, error)
 }
 
+type ConsultationSigningService interface {
+	SignByID(context.Context, string, string, int64) (consultations.Consultation, error)
+	AddCorrectionByID(context.Context, string, string, string, string) (consultations.Addendum, error)
+}
+
 func registerConsultationDrafts(group *gin.RouterGroup, service ConsultationDraftService) {
 	group.GET("/patients/:id/consultations", func(c *gin.Context) {
 		items, err := service.List(c.Request.Context(), ActorID(c), c.Param("id"))
@@ -70,6 +75,40 @@ func registerConsultationDrafts(group *gin.RouterGroup, service ConsultationDraf
 	})
 }
 
+func registerConsultationSigning(group *gin.RouterGroup, service ConsultationSigningService) {
+	group.POST("/consultations/:id/sign", func(c *gin.Context) {
+		var input *struct {
+			Version int64 `json:"version"`
+		}
+		if !consultationJSON(c, &input) || input == nil || input.Version <= 0 {
+			badConsultationRequest(c)
+			return
+		}
+		record, err := service.SignByID(c.Request.Context(), ActorID(c), c.Param("id"), input.Version)
+		if err != nil {
+			consultationError(c, err, true)
+			return
+		}
+		c.JSON(http.StatusOK, record)
+	})
+	group.POST("/consultations/:id/addenda", func(c *gin.Context) {
+		var input *struct {
+			Reason string `json:"reason"`
+			Body   string `json:"body"`
+		}
+		if !consultationJSON(c, &input) || input == nil {
+			badConsultationRequest(c)
+			return
+		}
+		added, err := service.AddCorrectionByID(c.Request.Context(), ActorID(c), c.Param("id"), input.Reason, input.Body)
+		if err != nil {
+			consultationError(c, err, true)
+			return
+		}
+		c.JSON(http.StatusCreated, added)
+	})
+}
+
 func consultationJSON(c *gin.Context, target any) bool {
 	mediaType, _, err := mime.ParseMediaType(c.GetHeader("Content-Type"))
 	if err != nil || mediaType != "application/json" {
@@ -94,9 +133,9 @@ func consultationError(c *gin.Context, err error, hideRecord bool) {
 		c.JSON(http.StatusNotFound, failure("not_found", "The requested resource was not found."))
 	case errors.Is(err, consultations.ErrForbidden):
 		c.JSON(http.StatusForbidden, failure("forbidden", "This action is not permitted."))
-	case errors.Is(err, consultations.ErrInvalidDraft):
+	case errors.Is(err, consultations.ErrInvalidDraft), errors.Is(err, consultations.ErrInvalidAddendum):
 		c.JSON(http.StatusUnprocessableEntity, failure("validation_failed", "Check the consultation fields."))
-	case errors.Is(err, consultations.ErrStaleVersion), errors.Is(err, consultations.ErrNotDraft):
+	case errors.Is(err, consultations.ErrStaleVersion), errors.Is(err, consultations.ErrNotDraft), errors.Is(err, consultations.ErrNotSigned):
 		c.JSON(http.StatusConflict, failure("conflict", "This action conflicts with the current record state."))
 	default:
 		c.JSON(http.StatusServiceUnavailable, failure("unavailable", "The request could not be completed."))
