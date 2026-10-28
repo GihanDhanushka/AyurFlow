@@ -7,6 +7,15 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+func consultationPatientID(ctx context.Context, tx pgx.Tx, id string) (string, error) {
+	var patientID string
+	err := tx.QueryRow(ctx, `SELECT patient_id::text FROM consultations WHERE id=$1`, id).Scan(&patientID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "", ErrNotFound
+	}
+	return patientID, err
+}
+
 func readConsultation(ctx context.Context, tx pgx.Tx, patientID, id string) (Consultation, error) {
 	var record Consultation
 	err := tx.QueryRow(ctx, `SELECT id::text, patient_id::text, status,
