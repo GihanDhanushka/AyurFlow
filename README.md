@@ -55,7 +55,7 @@ docker compose logs migrate backend frontend
 
 Open <http://localhost:3000>. API liveness: <http://localhost:8080/api/v1/health>; database readiness: <http://localhost:8080/api/v1/ready>. Compose waits for the database and migration job before starting the API. Persistent data lives in the `postgres_data` volume.
 
-This Compose file binds application/database ports to localhost for development. The pilot HTTPS proxy is a template, not a completed production deployment. See [operations](docs/operations.md).
+This Compose file binds application/database ports to localhost for development. A separate [pilot configuration](deploy/README.md) supplies HTTPS proxy wiring, restricted database grants and separate file secrets; it still requires operator configuration, live verification and review. See [operations](docs/operations.md).
 
 ## Start Go and Next.js locally
 
