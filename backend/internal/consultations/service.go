@@ -338,6 +338,27 @@ func (s *Service) Sign(ctx context.Context, actor, patientID, id string, version
 	return signed, err
 }
 
+func (s *Service) SignByID(ctx context.Context, actor, id string, version int64) (Consultation, error) {
+	if !validUUID(actor) {
+		return Consultation{}, ErrForbidden
+	}
+	if !validUUID(id) {
+		return Consultation{}, ErrNotFound
+	}
+	if s == nil || s.pool == nil || s.access == nil {
+		return Consultation{}, ErrForbidden
+	}
+	var patientID string
+	err := s.pool.QueryRow(ctx, `SELECT patient_id::text FROM consultations WHERE id=$1`, id).Scan(&patientID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Consultation{}, ErrNotFound
+	}
+	if err != nil {
+		return Consultation{}, err
+	}
+	return s.Sign(ctx, actor, patientID, id, version)
+}
+
 // AddCorrection appends a separately dated correction without changing the
 // signed original. Reason and body are kept in the clinical table, not audit.
 func (s *Service) AddCorrection(ctx context.Context, actor, patientID, id, reason, body string) (Addendum, error) {
@@ -384,6 +405,27 @@ func (s *Service) AddCorrection(ctx context.Context, actor, patientID, id, reaso
 		})
 	})
 	return added, err
+}
+
+func (s *Service) AddCorrectionByID(ctx context.Context, actor, id, reason, body string) (Addendum, error) {
+	if !validUUID(actor) {
+		return Addendum{}, ErrForbidden
+	}
+	if !validUUID(id) {
+		return Addendum{}, ErrNotFound
+	}
+	if s == nil || s.pool == nil || s.access == nil {
+		return Addendum{}, ErrForbidden
+	}
+	var patientID string
+	err := s.pool.QueryRow(ctx, `SELECT patient_id::text FROM consultations WHERE id=$1`, id).Scan(&patientID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Addendum{}, ErrNotFound
+	}
+	if err != nil {
+		return Addendum{}, err
+	}
+	return s.AddCorrection(ctx, actor, patientID, id, reason, body)
 }
 
 func validDraft(value string) bool {
