@@ -512,4 +512,3 @@ func TestListReceiptsRoute(t *testing.T) {
 		t.Fatalf("unexpected items: %+v", resp.Items)
 	}
 }
-

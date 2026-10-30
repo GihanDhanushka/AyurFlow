@@ -501,4 +501,3 @@ func TestDirectReceiptsDepositsAndBalanceIntegration(t *testing.T) {
 		t.Fatalf("expected 2 audit events for receipt.posted, got %d (err: %v)", auditCount, err)
 	}
 }
-
