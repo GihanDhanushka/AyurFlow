@@ -59,8 +59,8 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 | TASK-PAT-01 | Patient schema and identifier rules | B | C | In progress | [PR #19](https://github.com/thimira20011/AyurFlow/pull/19); isolated PostgreSQL schema test passed; A number, C/DEC02 review and AT02 integration pending |
 | TASK-PAT-02 | Registration, search and audited updates | B | C | In progress | [PR #22](https://github.com/thimira20011/AyurFlow/pull/22); [PostgreSQL CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40089021544); AUTH-03/CSRF, DEC02, C review and AT02 integration pending |
 | TASK-PAT-03 | Registration, search and detail screens | B | C | In progress | [PR #29](https://github.com/thimira20011/AyurFlow/pull/29) merged; development-only synthetic preview; [CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40177536481); shared sign-in/UI, DEC02/07, C review and AT02 journey pending |
-| TASK-CON-01 | Consultation/addendum schema and drafts | B | C | In progress | [PR #32](https://github.com/thimira20011/AyurFlow/pull/32); [CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40267707813); assignment policy, protected HTTP, A migration number, C review and AT03 pending |
-| TASK-CON-02 | Signing, immutable text and dated addenda | B | C | In progress | `member-b/signing-addenda`; [PostgreSQL CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40394151806); A migration number, DEC02, protected HTTP, C review and AT03 pending |
+| TASK-CON-01 | Consultation/addendum schema and drafts | B | C | In progress | [PR #32](https://github.com/thimira20011/AyurFlow/pull/32) merged; follow-up `member-b/con-01-clinical-access` proposes assignment source, protected draft handlers and tests; A migration number, DEC02 grant authority, live registration, C review and AT03 pending |
+| TASK-CON-02 | Signing, immutable text and dated addenda | B | C | In progress | `member-b/signing-addenda`; follow-up [PR #42](https://github.com/thimira20011/AyurFlow/pull/42) passed [protected HTTP and PostgreSQL CI](https://github.com/thimira20011/AyurFlow/actions/runs/40652220332); live registration, A migration number, DEC02, C review and AT03 pending |
 | TASK-CON-03 | Consultation editor, sign and history UI | B | C | In progress | `member-b/consultation-screens`: editor/history and development-only synthetic preview; [branch CI passed](https://github.com/thimira20011/AyurFlow/actions/runs/40399408858); protected clinical HTTP, DEC02, F shared UI, C review and AT03 pending |
 | TASK-CON-04 | AT02–03 patient/consultation verification | B | C | Pending | — |
 
@@ -68,7 +68,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 
 | Task | Deliverable | Owner slot | Peer reviewer | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| TASK-CLN-01 | One pathway and ordered plan/stage schema | B | C | Pending | — |
+| TASK-CLN-01 | One pathway and ordered plan/stage schema | B | C | In progress | `member-b/cln-01-pathway-schema` adds schema and PostgreSQL test; A migration number, DEC02 labels/checklist and C review pending |
 | TASK-CLN-02 | Plan, approval and guarded advancement | B | C | Pending | — |
 | TASK-CLN-03 | Hold, resume, cancel and history | B with C | C | Pending | — |
 | TASK-CLN-04 | Shared clearance and plan/start concurrency | B with C | C | Pending | — |
@@ -127,7 +127,7 @@ Status values: **Pending** = not started; **In progress** = work underway but co
 | --- | --- | --- | --- | --- | --- |
 | TASK-OPS-01 | Compose, configuration, HTTPS and pilot deployment | A | F | Pending | — |
 | TASK-OPS-02 | Encrypted daily backup and isolated restore | A | F; clinic operations review | Pending | — |
-| TASK-OPS-03 | Usage, outage, API/setup and migration guides | F assembles; each owner writes module | A | Pending | — |
+| TASK-OPS-03 | Usage, outage, API/setup and migration guides | F assembles; each owner writes module | A | In progress | B's [patient and clinical staff guide](guides/member-b-staff.md) on `member-b/ops-03-usage-guide` ready for synthetic walkthrough; F/A assembly and verification pending |
 | TASK-OPS-04 | Clean startup, migrations, seed and restart | A with F | F | Pending | — |
 | TASK-OPS-05 | Data authorization, custody and support decisions | Team lead; A handles operations | Clinic/institution | Pending | — |
 | TASK-OPS-06 | Training, release and handover | F; all owners teach modules | A; clinic recipient | Pending | — |

@@ -26,9 +26,10 @@ var (
 
 // AccessPolicy must check an active clinician's patient assignment in the
 // caller's transaction. No policy, including a nil policy, grants access.
-// The assignment source is pending DEC02; protected routes stay unregistered.
+// Assignment grant authority and final access policy remain DEC02 review gates.
 type AccessPolicy interface {
 	CanCreate(context.Context, pgx.Tx, string, string) error
+	CanList(context.Context, pgx.Tx, string, string) error
 	CanRead(context.Context, pgx.Tx, string, string, string) error
 	CanEdit(context.Context, pgx.Tx, string, string, string) error
 }
@@ -58,6 +59,17 @@ type Addendum struct {
 	Body           string    `json:"body"`
 }
 
+// Summary deliberately omits all clinical text and correction reasons.
+type Summary struct {
+	ID        string     `json:"id"`
+	PatientID string     `json:"patientId"`
+	Status    string     `json:"status"`
+	Version   int64      `json:"version"`
+	CreatedAt time.Time  `json:"createdAt"`
+	CreatedBy string     `json:"createdBy"`
+	SignedAt  *time.Time `json:"signedAt,omitempty"`
+}
+
 type Service struct {
 	pool   *pgxpool.Pool
 	access AccessPolicy
@@ -65,6 +77,92 @@ type Service struct {
 
 func NewService(pool *pgxpool.Pool, access AccessPolicy) *Service {
 	return &Service{pool: pool, access: access}
+}
+
+func (s *Service) List(ctx context.Context, actor, patientID string) ([]Summary, error) {
+	if !validUUID(actor) {
+		return nil, ErrForbidden
+	}
+	if !validUUID(patientID) {
+		return nil, ErrNotFound
+	}
+	if s == nil || s.pool == nil || s.access == nil {
+		return nil, ErrForbidden
+	}
+	items := make([]Summary, 0)
+	err := pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		if err := s.access.CanList(ctx, tx, actor, patientID); err != nil {
+			return err
+		}
+		rows, err := tx.Query(ctx, `SELECT id::text, patient_id::text, status,
+			record_version, created_at, created_by::text, signed_at
+			FROM consultations WHERE patient_id=$1
+			ORDER BY created_at DESC, id DESC LIMIT 25`, patientID)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var item Summary
+			if err := rows.Scan(&item.ID, &item.PatientID, &item.Status,
+				&item.Version, &item.CreatedAt, &item.CreatedBy, &item.SignedAt); err != nil {
+				return err
+			}
+			items = append(items, item)
+		}
+		return rows.Err()
+	})
+	return items, err
+}
+
+// GetByID resolves the immutable patient link and checks access before reading
+// any note body. It supports the single-ID detail route used by the client.
+func (s *Service) GetByID(ctx context.Context, actor, id string) (Consultation, error) {
+	if !validUUID(actor) {
+		return Consultation{}, ErrForbidden
+	}
+	if !validUUID(id) {
+		return Consultation{}, ErrNotFound
+	}
+	if s == nil || s.pool == nil || s.access == nil {
+		return Consultation{}, ErrForbidden
+	}
+	var found Consultation
+	err := pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		patientID, err := consultationPatientID(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+		if err := s.access.CanRead(ctx, tx, actor, patientID, id); err != nil {
+			return err
+		}
+		found, err = readConsultation(ctx, tx, patientID, id)
+		return err
+	})
+	return found, err
+}
+
+// UpdateByID resolves the patient link before invoking the versioned service
+// transaction. Patient IDs on consultations have no application update path.
+func (s *Service) UpdateByID(ctx context.Context, actor, id string, version int64, draftText string) (Consultation, error) {
+	if !validUUID(actor) {
+		return Consultation{}, ErrForbidden
+	}
+	if !validUUID(id) {
+		return Consultation{}, ErrNotFound
+	}
+	if s == nil || s.pool == nil || s.access == nil {
+		return Consultation{}, ErrForbidden
+	}
+	var patientID string
+	err := s.pool.QueryRow(ctx, `SELECT patient_id::text FROM consultations WHERE id=$1`, id).Scan(&patientID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Consultation{}, ErrNotFound
+	}
+	if err != nil {
+		return Consultation{}, err
+	}
+	return s.Update(ctx, actor, patientID, id, version, draftText)
 }
 
 func (s *Service) Create(ctx context.Context, actor, patientID, draftText string) (Consultation, error) {
@@ -240,6 +338,27 @@ func (s *Service) Sign(ctx context.Context, actor, patientID, id string, version
 	return signed, err
 }
 
+func (s *Service) SignByID(ctx context.Context, actor, id string, version int64) (Consultation, error) {
+	if !validUUID(actor) {
+		return Consultation{}, ErrForbidden
+	}
+	if !validUUID(id) {
+		return Consultation{}, ErrNotFound
+	}
+	if s == nil || s.pool == nil || s.access == nil {
+		return Consultation{}, ErrForbidden
+	}
+	var patientID string
+	err := s.pool.QueryRow(ctx, `SELECT patient_id::text FROM consultations WHERE id=$1`, id).Scan(&patientID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Consultation{}, ErrNotFound
+	}
+	if err != nil {
+		return Consultation{}, err
+	}
+	return s.Sign(ctx, actor, patientID, id, version)
+}
+
 // AddCorrection appends a separately dated correction without changing the
 // signed original. Reason and body are kept in the clinical table, not audit.
 func (s *Service) AddCorrection(ctx context.Context, actor, patientID, id, reason, body string) (Addendum, error) {
@@ -286,6 +405,27 @@ func (s *Service) AddCorrection(ctx context.Context, actor, patientID, id, reaso
 		})
 	})
 	return added, err
+}
+
+func (s *Service) AddCorrectionByID(ctx context.Context, actor, id, reason, body string) (Addendum, error) {
+	if !validUUID(actor) {
+		return Addendum{}, ErrForbidden
+	}
+	if !validUUID(id) {
+		return Addendum{}, ErrNotFound
+	}
+	if s == nil || s.pool == nil || s.access == nil {
+		return Addendum{}, ErrForbidden
+	}
+	var patientID string
+	err := s.pool.QueryRow(ctx, `SELECT patient_id::text FROM consultations WHERE id=$1`, id).Scan(&patientID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Addendum{}, ErrNotFound
+	}
+	if err != nil {
+		return Addendum{}, err
+	}
+	return s.AddCorrection(ctx, actor, patientID, id, reason, body)
 }
 
 func validDraft(value string) bool {

@@ -16,6 +16,7 @@ import (
 	"ayurflow/backend/internal/auth"
 	"ayurflow/backend/internal/authorization"
 	"ayurflow/backend/internal/config"
+	"ayurflow/backend/internal/consultations"
 	"ayurflow/backend/internal/patients"
 	"ayurflow/backend/internal/testutil"
 
@@ -63,7 +64,9 @@ func newProtectedFixture(t *testing.T) protectedFixture {
 		t.Fatal(err)
 	}
 	service := patients.NewService(pool, &authorization.PatientPolicy{})
-	router := NewRouter(pool, AuthRoutes{Service: sessions, AllowedOrigin: protectedOrigin, Patients: service})
+	clinical := consultations.NewService(pool, consultations.AssignedPolicy{})
+	router := NewRouter(pool, AuthRoutes{Service: sessions, AllowedOrigin: protectedOrigin,
+		Patients: service, Consultations: clinical, Signing: clinical})
 	return protectedFixture{pool: pool, sessions: sessions, router: router, actor: actor, token: token, csrf: session.CSRFToken}
 }
 
