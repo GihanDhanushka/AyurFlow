@@ -5,7 +5,7 @@ Proposed owner: E. Reviewer: D. SRS: BIL-01–06. AT: AT12.
 Draft/issued invoices, integer LKR minor units, direct deposits/receipts,
 balance protection and idempotent receipt operations.
 
-## Status (TASK-BILL-02 — in progress)
+## Status (TASK-BILL-03 — in review)
 
 | File / Component | Status | Notes |
 |---|---|---|
@@ -13,8 +13,8 @@ balance protection and idempotent receipt operations.
 | `repository.go` | ✅ Implemented | Parameterized pgx queries; FOR UPDATE locking; audit event helper |
 | `service.go` | ✅ Implemented | Full invoice lifecycle, role checking, atomic issue, idempotent receipt posting |
 | `transport/http/billing.go` | ✅ Implemented | Protected routes registered under `RequireSession` in `router.go` |
-| `billing_test.go` | ✅ Implemented | Unit validation tests, including integer bounds and money range checks |
-| `service_integration_test.go` | ✅ Implemented | PostgreSQL lifecycle, immutability, role rejection, retry, concurrency regressions |
+| `billing_test.go` | ✅ Implemented | Unit validation tests, balance derivation, money range, and UUID canonicalization |
+| `service_integration_test.go` | ✅ Implemented | Direct receipts, deposits, balance, overpayment conflict, retry, concurrency, and audit rollback regressions |
 | `000004_billing.up.sql` | ✅ Merged | Invoices, invoice_items, receipts with integrity constraints |
 | HTTP routes registered | ✅ Integrated | Wire routes protected by `RequireSession` in `router.go` with CSRF enforcement |
 | Role authorization | ✅ Enforced | `billing` and `receptionist` roles checked in PostgreSQL transactions |
@@ -40,4 +40,5 @@ and `go test -tags=integration -count=1 ./internal/billing` with a disposable
 
 ## Branch
 
-`member-e/task-bill-02-invoice-lifecycle`
+`member-e/task-bill-03-receipts-balance`
+

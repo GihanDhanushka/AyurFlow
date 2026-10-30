@@ -365,3 +365,151 @@ func TestBillingForbiddenRoute(t *testing.T) {
 		t.Fatalf("expected 403 Forbidden, got %d: %s", w.Code, w.Body.String())
 	}
 }
+
+func TestPostReceiptRoute(t *testing.T) {
+	now := time.Now().UTC()
+	mockSvc := &mockBillingService{
+		postReceiptFunc: func(ctx context.Context, actorID, invoiceID string, req billing.PostReceiptRequest) (billing.Receipt, error) {
+			return billing.Receipt{
+				ID:            "rec-uuid-1",
+				InvoiceID:     invoiceID,
+				OperationID:   req.OperationID,
+				AmountMinor:   req.AmountMinor,
+				PaymentMethod: req.PaymentMethod,
+				Label:         req.Label,
+				IssuedAt:      now,
+				IssuedBy:      actorID,
+			}, nil
+		},
+	}
+	router := setupBillingTestRouter(mockSvc)
+	body, _ := json.Marshal(billing.PostReceiptRequest{
+		OperationID:   "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		AmountMinor:   250000,
+		PaymentMethod: "direct_deposit",
+		Label:         "Advance deposit slip #BOC-109",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/invoices/inv-uuid-1/receipts", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Origin", "https://clinic.example")
+	req.Header.Set("X-CSRF-Token", "valid-csrf-token")
+	req.AddCookie(&http.Cookie{Name: sessionCookie, Value: "valid-session"})
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected 201 Created, got %d: %s", w.Code, w.Body.String())
+	}
+	var rec billing.Receipt
+	if err := json.Unmarshal(w.Body.Bytes(), &rec); err != nil {
+		t.Fatal(err)
+	}
+	if rec.ID != "rec-uuid-1" || rec.AmountMinor != 250000 || rec.PaymentMethod != "direct_deposit" || rec.Label != "Advance deposit slip #BOC-109" {
+		t.Fatalf("unexpected receipt response: %+v", rec)
+	}
+}
+
+func TestPostReceiptConflict(t *testing.T) {
+	mockSvc := &mockBillingService{
+		postReceiptFunc: func(ctx context.Context, actorID, invoiceID string, req billing.PostReceiptRequest) (billing.Receipt, error) {
+			return billing.Receipt{}, errors.Join(billing.ErrConflict, errors.New("overpayment exceeds outstanding balance"))
+		},
+	}
+	router := setupBillingTestRouter(mockSvc)
+	body, _ := json.Marshal(billing.PostReceiptRequest{
+		OperationID:   "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+		AmountMinor:   99999999,
+		PaymentMethod: "cash",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/invoices/inv-uuid-1/receipts", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Origin", "https://clinic.example")
+	req.Header.Set("X-CSRF-Token", "valid-csrf-token")
+	req.AddCookie(&http.Cookie{Name: sessionCookie, Value: "valid-session"})
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusConflict {
+		t.Fatalf("expected 409 Conflict, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestGetBalanceRoute(t *testing.T) {
+	mockSvc := &mockBillingService{
+		getBalanceFunc: func(ctx context.Context, actorID, invoiceID string) (billing.InvoiceBalance, error) {
+			return billing.InvoiceBalance{
+				InvoiceID:        invoiceID,
+				TotalMinor:       500000,
+				PaidMinor:        200000,
+				OutstandingMinor: 300000,
+			}, nil
+		},
+	}
+	router := setupBillingTestRouter(mockSvc)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/invoices/inv-uuid-1/balance", nil)
+	req.Header.Set("Origin", "https://clinic.example")
+	req.AddCookie(&http.Cookie{Name: sessionCookie, Value: "valid-session"})
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200 OK, got %d: %s", w.Code, w.Body.String())
+	}
+	var bal billing.InvoiceBalance
+	if err := json.Unmarshal(w.Body.Bytes(), &bal); err != nil {
+		t.Fatal(err)
+	}
+	if bal.TotalMinor != 500000 || bal.PaidMinor != 200000 || bal.OutstandingMinor != 300000 {
+		t.Fatalf("unexpected balance: %+v", bal)
+	}
+}
+
+func TestListReceiptsRoute(t *testing.T) {
+	now := time.Now().UTC()
+	mockSvc := &mockBillingService{
+		listReceiptsFunc: func(ctx context.Context, actorID, invoiceID string) ([]billing.Receipt, error) {
+			return []billing.Receipt{
+				{
+					ID:            "rec-1",
+					InvoiceID:     invoiceID,
+					OperationID:   "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+					AmountMinor:   200000,
+					PaymentMethod: "direct_deposit",
+					Label:         "Deposit 1",
+					IssuedAt:      now,
+					IssuedBy:      actorID,
+				},
+				{
+					ID:            "rec-2",
+					InvoiceID:     invoiceID,
+					OperationID:   "7cb11f20-9182-4102-8172-1b918274a100",
+					AmountMinor:   300000,
+					PaymentMethod: "cash",
+					Label:         "Counter settlement",
+					IssuedAt:      now.Add(time.Hour),
+					IssuedBy:      actorID,
+				},
+			}, nil
+		},
+	}
+	router := setupBillingTestRouter(mockSvc)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/invoices/inv-uuid-1/receipts", nil)
+	req.Header.Set("Origin", "https://clinic.example")
+	req.AddCookie(&http.Cookie{Name: sessionCookie, Value: "valid-session"})
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200 OK, got %d: %s", w.Code, w.Body.String())
+	}
+	var resp struct {
+		Items []billing.Receipt `json:"items"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if len(resp.Items) != 2 || resp.Items[0].AmountMinor != 200000 || resp.Items[1].AmountMinor != 300000 {
+		t.Fatalf("unexpected items: %+v", resp.Items)
+	}
+}
+
