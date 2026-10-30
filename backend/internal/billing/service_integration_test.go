@@ -406,3 +406,98 @@ func TestVoidDraftInvoiceIntegration(t *testing.T) {
 		t.Fatalf("issuing void invoice must return ErrConflict, got %v", err)
 	}
 }
+
+func TestDirectReceiptsDepositsAndBalanceIntegration(t *testing.T) {
+	service, pool := billingFixture(t)
+	// Issue an invoice with a total of Rs. 10,000.00 (1,000,000 minor units)
+	invoice := issuedTestInvoice(t, service, 1000000)
+
+	// 1. Initial balance check: total = 1,000,000; paid = 0; outstanding = 1,000,000
+	bal, err := service.GetBalance(t.Context(), billingTestActor, invoice.ID)
+	if err != nil {
+		t.Fatalf("failed to get initial balance: %v", err)
+	}
+	if bal.TotalMinor != 1000000 || bal.PaidMinor != 0 || bal.OutstandingMinor != 1000000 {
+		t.Fatalf("unexpected initial balance: %+v", bal)
+	}
+
+	// 2. Post an advance direct deposit (Rs. 4,000.00 = 400,000 minor units)
+	op1 := receiptOperation(t, pool)
+	req1 := PostReceiptRequest{
+		OperationID:   op1,
+		AmountMinor:   400000,
+		PaymentMethod: "direct_deposit",
+		Label:         "Advance deposit BOC-slip-882",
+	}
+	rec1, err := service.PostReceipt(t.Context(), billingTestActor, invoice.ID, req1)
+	if err != nil {
+		t.Fatalf("failed to post direct deposit: %v", err)
+	}
+	if rec1.AmountMinor != 400000 || rec1.PaymentMethod != "direct_deposit" || rec1.Label != "Advance deposit BOC-slip-882" {
+		t.Fatalf("unexpected deposit receipt: %+v", rec1)
+	}
+
+	// 3. Balance after deposit: paid = 400,000; outstanding = 600,000
+	bal, err = service.GetBalance(t.Context(), billingTestActor, invoice.ID)
+	if err != nil {
+		t.Fatalf("failed to get balance after deposit: %v", err)
+	}
+	if bal.PaidMinor != 400000 || bal.OutstandingMinor != 600000 {
+		t.Fatalf("unexpected balance after deposit: %+v", bal)
+	}
+
+	// 4. Post final counter cash payment (Rs. 6,000.00 = 600,000 minor units)
+	op2 := receiptOperation(t, pool)
+	req2 := PostReceiptRequest{
+		OperationID:   op2,
+		AmountMinor:   600000,
+		PaymentMethod: "cash",
+		Label:         "Counter settlement",
+	}
+	rec2, err := service.PostReceipt(t.Context(), billingTestActor, invoice.ID, req2)
+	if err != nil {
+		t.Fatalf("failed to post cash receipt: %v", err)
+	}
+	if rec2.AmountMinor != 600000 || rec2.PaymentMethod != "cash" || rec2.Label != "Counter settlement" {
+		t.Fatalf("unexpected cash receipt: %+v", rec2)
+	}
+
+	// 5. Balance after full payment: paid = 1,000,000; outstanding = 0 (settled)
+	bal, err = service.GetBalance(t.Context(), billingTestActor, invoice.ID)
+	if err != nil {
+		t.Fatalf("failed to get settled balance: %v", err)
+	}
+	if bal.PaidMinor != 1000000 || bal.OutstandingMinor != 0 {
+		t.Fatalf("unexpected settled balance: %+v", bal)
+	}
+
+	// 6. Overpayment attempt must be rejected with ErrConflict
+	op3 := receiptOperation(t, pool)
+	_, err = service.PostReceipt(t.Context(), billingTestActor, invoice.ID, PostReceiptRequest{
+		OperationID:   op3,
+		AmountMinor:   5000,
+		PaymentMethod: "cash",
+	})
+	if !errors.Is(err, ErrConflict) {
+		t.Fatalf("expected ErrConflict on overpayment attempt, got %v", err)
+	}
+
+	// 7. Verify ListReceipts returns both receipts in chronological order
+	receipts, err := service.ListReceipts(t.Context(), billingTestActor, invoice.ID)
+	if err != nil {
+		t.Fatalf("failed to list receipts: %v", err)
+	}
+	if len(receipts) != 2 {
+		t.Fatalf("expected 2 receipts, got %d", len(receipts))
+	}
+	if receipts[0].ID != rec1.ID || receipts[1].ID != rec2.ID {
+		t.Fatalf("receipts not in expected order: %+v", receipts)
+	}
+
+	// 8. Verify audit events recorded in transaction for each receipt
+	var auditCount int
+	err = pool.QueryRow(t.Context(), `SELECT count(*) FROM audit_events WHERE action='receipt.posted' AND object_id IN ($1, $2)`, rec1.ID, rec2.ID).Scan(&auditCount)
+	if err != nil || auditCount != 2 {
+		t.Fatalf("expected 2 audit events for receipt.posted, got %d (err: %v)", auditCount, err)
+	}
+}

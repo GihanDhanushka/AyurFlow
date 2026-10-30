@@ -381,9 +381,9 @@ export function BillingWorkspace() {
       {/* Notice bar showing current architecture adherence */}
       <div className={styles.noticeBar}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <span className={styles.noticeTag}>TASK-BILL-02</span>
+          <span className={styles.noticeTag}>TASK-BILL-03</span>
           <span style={{ fontSize: "0.88rem" }}>
-            <strong>Protected Billing Transport Live:</strong> Invoices, line item locking, integer LKR minor units, and atomic issuance.
+            <strong>Direct Receipts, Deposits &amp; Balance Live:</strong> Labelled bank deposits, cash settlements, real-time balance tracking, and overpayment protection.
           </span>
         </div>
         <div style={{ fontSize: "0.82rem", color: "var(--bill-muted)" }}>
@@ -1002,7 +1002,27 @@ export function BillingWorkspace() {
               </div>
 
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Amount (LKR Rupees)</label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <label className={styles.formLabel}>Amount (LKR Rupees)</label>
+                  <div style={{ display: "flex", gap: "0.35rem" }}>
+                    <button
+                      type="button"
+                      className={styles.secondaryBtn}
+                      style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
+                      onClick={() => setReceiptAmountRupees(computeBalance(receiptInvoice).outstanding / 100)}
+                    >
+                      Full Balance
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.secondaryBtn}
+                      style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
+                      onClick={() => setReceiptAmountRupees(Math.round((computeBalance(receiptInvoice).outstanding / 2) / 100))}
+                    >
+                      50% Deposit
+                    </button>
+                  </div>
+                </div>
                 <input
                   type="number"
                   step="50"
